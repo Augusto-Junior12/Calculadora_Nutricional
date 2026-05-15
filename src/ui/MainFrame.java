@@ -2,32 +2,26 @@ package ui;
 
 import ui.components.SidebarPanel;
 import ui.panels.*;
-import ui.theme.HospitalTheme;
+import ui.theme.NutrixTheme;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * Frame principal do sistema Facilita Nutri UTI.
- * Usa CardLayout com SidebarPanel para navegação entre módulos.
+ * Nutrix Hospital OS — Frame Principal.
  */
 public class MainFrame extends JFrame {
 
     private final CardLayout cardLayout;
-    private final JPanel contentPanel;
+    private final JPanel contentWrapper;
+    private JLabel activePanelLabel;
 
     private static final String[] MENU_LABELS = {
-        "Dashboard",
-        "Cadastro Paciente",
-        "Antropometria",
-        "Necessidades Nutri.",
-        "Prescrição Dieta",
-        "Hidratação",
-        "Cálculos Clínicos",
-        "Controle Ingestão",
-        "Prescrito × Infundido",
-        "Consulta Fórmulas",
-        "TNE Sistema Aberto"
+        "Dashboard", "Admissão", "Antropometria", "Metas Nutri.", 
+        "Prescrição", "Hidratação", "Monitor UTI", "Ingestão Oral", 
+        "Qualidade (P×I)", "Fórmulas", "Sistema Aberto"
     };
 
     private static final String[] PANEL_KEYS = {
@@ -37,52 +31,74 @@ public class MainFrame extends JFrame {
     };
 
     public MainFrame() {
-        super("Facilita Nutri UTI v2.0 — Sistema de Terapia Nutricional");
+        super("Nutrix Hospital OS v2.0");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1320, 850);
-        setMinimumSize(new Dimension(1024, 700));
+        setSize(1350, 880);
         setLocationRelativeTo(null);
 
-        // Icon da janela (emoji de hospital como texto)
-        setLayout(new BorderLayout());
+        // Main Container
+        JPanel mainContainer = new JPanel(new BorderLayout());
+        mainContainer.setBackground(NutrixTheme.BG_MAIN);
 
-        // Content area com CardLayout
+        // --- Right Side Wrapper ---
+        JPanel rightSide = new JPanel(new BorderLayout());
+        rightSide.setOpaque(false);
+
+        // Global Header (Top Bar)
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 65));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, NutrixTheme.BORDER));
+        header.setBorder(new CompoundBorder(header.getBorder(), new EmptyBorder(0, 45, 0, 45)));
+
+        activePanelLabel = new JLabel("DASHBOARD");
+        activePanelLabel.setFont(NutrixTheme.FONT_H3);
+        activePanelLabel.setForeground(NutrixTheme.TEXT_H1);
+        header.add(activePanelLabel, BorderLayout.WEST);
+
+        // Patient Status Placeholder
+        JLabel statusInfo = new JLabel("Sessão: Dr. Nutricionista | UTI Central");
+        statusInfo.setFont(NutrixTheme.FONT_SMALL);
+        statusInfo.setForeground(NutrixTheme.TEXT_MUTED);
+        header.add(statusInfo, BorderLayout.EAST);
+
+        // Content Area
         cardLayout = new CardLayout();
-        contentPanel = new JPanel(cardLayout);
-        contentPanel.setBackground(HospitalTheme.BACKGROUND);
+        contentWrapper = new JPanel(cardLayout);
+        contentWrapper.setOpaque(false);
 
-        // Registrar painéis
-        contentPanel.add(new DashboardPanel(), PANEL_KEYS[0]);
-        contentPanel.add(new PacienteCadastroPanel(), PANEL_KEYS[1]);
-        contentPanel.add(new AntropometriaPanel(), PANEL_KEYS[2]);
-        contentPanel.add(new NecessidadesPanel(), PANEL_KEYS[3]);
-        contentPanel.add(new PrescricaoPanel(), PANEL_KEYS[4]);
-        contentPanel.add(new HidratacaoPanel(), PANEL_KEYS[5]);
-        contentPanel.add(new CalculosClinicosPanel(), PANEL_KEYS[6]);
-        contentPanel.add(new IngestaoOralPanel(), PANEL_KEYS[7]);
-        contentPanel.add(new PrescritoInfundidoPanel(), PANEL_KEYS[8]);
-        contentPanel.add(new ConsultaFormulasPanel(), PANEL_KEYS[9]);
-        contentPanel.add(new TNEAbertaPanel(), PANEL_KEYS[10]);
+        // Adicionar painéis
+        contentWrapper.add(new DashboardPanel(), PANEL_KEYS[0]);
+        contentWrapper.add(new PacienteCadastroPanel(), PANEL_KEYS[1]);
+        contentWrapper.add(new AntropometriaPanel(), PANEL_KEYS[2]);
+        contentWrapper.add(new NecessidadesPanel(), PANEL_KEYS[3]);
+        contentWrapper.add(new PrescricaoPanel(), PANEL_KEYS[4]);
+        contentWrapper.add(new HidratacaoPanel(), PANEL_KEYS[5]);
+        contentWrapper.add(new CalculosClinicosPanel(), PANEL_KEYS[6]);
+        contentWrapper.add(new IngestaoOralPanel(), PANEL_KEYS[7]);
+        contentWrapper.add(new PrescritoInfundidoPanel(), PANEL_KEYS[8]);
+        contentWrapper.add(new ConsultaFormulasPanel(), PANEL_KEYS[9]);
+        contentWrapper.add(new TNEAbertaPanel(), PANEL_KEYS[10]);
 
-        // Sidebar
+        // --- Sidebar ---
         SidebarPanel sidebar = new SidebarPanel(MENU_LABELS, (index, name) -> {
-            if (index < PANEL_KEYS.length) {
-                cardLayout.show(contentPanel, PANEL_KEYS[index]);
-            }
+            cardLayout.show(contentWrapper, PANEL_KEYS[index]);
+            activePanelLabel.setText(name.toUpperCase());
         });
 
-        add(sidebar, BorderLayout.WEST);
-        add(contentPanel, BorderLayout.CENTER);
+        rightSide.add(header, BorderLayout.NORTH);
+        rightSide.add(contentWrapper, BorderLayout.CENTER);
 
-        // Mostrar Dashboard
-        cardLayout.show(contentPanel, PANEL_KEYS[0]);
+        mainContainer.add(sidebar, BorderLayout.WEST);
+        mainContainer.add(rightSide, BorderLayout.CENTER);
+
+        add(mainContainer);
     }
 
-    /**
-     * Ponto de entrada principal da aplicação.
-     */
     public static void main(String[] args) {
-        HospitalTheme.configurarLookAndFeel();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
 
         SwingUtilities.invokeLater(() -> {
             MainFrame frame = new MainFrame();

@@ -4,7 +4,7 @@ import model.Paciente;
 import model.enums.Etnia;
 import model.enums.Genero;
 import repository.PacienteRepository;
-import ui.theme.HospitalTheme;
+import ui.theme.NutrixTheme;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,210 +13,131 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Painel de cadastro de pacientes.
+ * Cadastro de Pacientes — Nutrix Hospital OS.
  */
 public class PacienteCadastroPanel extends JPanel {
 
-    private final JTextField nomeField, codigoField, idadeField, setorField;
-    private final JTextField pesoField, alturaField, cbField, cpField, ajField;
-    private final JTextField caField, ccField, dctField;
+    private final JTextField nomeField, codigoField, idadeField;
+    private final JTextField pesoField, alturaField, cbField;
     private final JComboBox<String> generoBox, etniaBox;
-    private final JTextField dataIntField;
-    private final JCheckBox obesoCheck, hdInterCheck, hdContCheck;
-    private final JCheckBox alergiaSojaCheck, ileoCheck, posOpCheck, restHidricaCheck;
     private final JTextArea resultadoArea;
     private final PacienteRepository repo;
 
     public PacienteCadastroPanel() {
         repo = PacienteRepository.getInstance();
-        setLayout(new BorderLayout(0, 10));
-        setBackground(HospitalTheme.BACKGROUND);
-        setBorder(new EmptyBorder(20, 25, 20, 25));
+        setLayout(new BorderLayout(0, 25));
+        setBackground(NutrixTheme.BG_MAIN);
+        setBorder(new EmptyBorder(30, 45, 30, 45));
 
-        // Título
-        JLabel titulo = HospitalTheme.createTitle("Cadastro de Paciente");
-        JLabel subtitulo = HospitalTheme.createLabel("Admissão em UTI — dados de identificação e medidas");
-        JPanel headerPanel = new JPanel(new GridLayout(2, 1));
-        headerPanel.setOpaque(false);
-        headerPanel.add(titulo);
-        headerPanel.add(subtitulo);
-        add(headerPanel, BorderLayout.NORTH);
+        JPanel formScroll = new JPanel();
+        formScroll.setLayout(new BoxLayout(formScroll, BoxLayout.Y_AXIS));
+        formScroll.setOpaque(false);
 
-        // Formulário principal
-        JPanel form = new JPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setOpaque(false);
+        // --- Seção de Identificação ---
+        JPanel idCard = NutrixTheme.createCard();
+        idCard.setLayout(new BorderLayout(0, 20));
+        
+        JLabel idTitle = new JLabel("DADOS DE IDENTIFICAÇÃO");
+        idTitle.setFont(NutrixTheme.FONT_H3);
+        idTitle.setForeground(NutrixTheme.ACCENT);
+        idCard.add(idTitle, BorderLayout.NORTH);
 
-        // --- Identificação ---
-        JPanel idCard = criarSecao("Identificação");
-        JPanel idGrid = new JPanel(new GridLayout(0, 4, 10, 8));
+        JPanel idGrid = new JPanel(new GridLayout(0, 3, 20, 15));
         idGrid.setOpaque(false);
-        nomeField = addCampo(idGrid, "Nome:");
-        codigoField = addCampo(idGrid, "Código:");
-        idadeField = addCampo(idGrid, "Idade:");
-        generoBox = addCombo(idGrid, "Gênero:", new String[]{"Masculino", "Feminino"});
-        etniaBox = addCombo(idGrid, "Etnia:", new String[]{"Branco", "Negro"});
-        setorField = addCampo(idGrid, "Setor UTI:");
-        dataIntField = addCampo(idGrid, "Data Internação:");
-        dataIntField.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        nomeField = addCampoModerno(idGrid, "Nome Completo:");
+        codigoField = addCampoModerno(idGrid, "Registro Hospitalar (RH):");
+        idadeField = addCampoModerno(idGrid, "Idade:");
+        generoBox = addComboModerno(idGrid, "Gênero:", new String[]{"Masculino", "Feminino"});
+        etniaBox = addComboModerno(idGrid, "Etnia:", new String[]{"Branco", "Negro"});
+        addCampoModerno(idGrid, "Setor UTI:");
         idCard.add(idGrid, BorderLayout.CENTER);
-        form.add(idCard);
-        form.add(Box.createVerticalStrut(10));
+        formScroll.add(idCard);
+        formScroll.add(Box.createVerticalStrut(25));
 
-        // --- Medidas Antropométricas ---
-        JPanel medCard = criarSecao("Medidas Antropométricas");
-        JPanel medGrid = new JPanel(new GridLayout(0, 4, 10, 8));
-        medGrid.setOpaque(false);
-        pesoField = addCampo(medGrid, "Peso (kg):");
-        alturaField = addCampo(medGrid, "Altura (m):");
-        cbField = addCampo(medGrid, "CB (cm):");
-        cpField = addCampo(medGrid, "CP (cm):");
-        ajField = addCampo(medGrid, "AJ (cm):");
-        caField = addCampo(medGrid, "CA (cm):");
-        ccField = addCampo(medGrid, "CC (cm):");
-        dctField = addCampo(medGrid, "DCT (mm):");
-        medCard.add(medGrid, BorderLayout.CENTER);
-        form.add(medCard);
-        form.add(Box.createVerticalStrut(10));
+        // --- Seção de Antropometria ---
+        JPanel antCard = NutrixTheme.createCard();
+        antCard.setLayout(new BorderLayout(0, 20));
+        JLabel antTitle = new JLabel("ANTROPOMETRIA INICIAL");
+        antTitle.setFont(NutrixTheme.FONT_H3);
+        antTitle.setForeground(NutrixTheme.ACCENT);
+        antCard.add(antTitle, BorderLayout.NORTH);
 
-        // --- Condições Especiais ---
-        JPanel condCard = criarSecao("Condições Especiais");
-        JPanel condGrid = new JPanel(new GridLayout(0, 4, 10, 6));
-        condGrid.setOpaque(false);
-        obesoCheck = addCheck(condGrid, "Obeso (IMC > 30)");
-        hdInterCheck = addCheck(condGrid, "HD Intermitente");
-        hdContCheck = addCheck(condGrid, "HD Contínua (CRRT)");
-        alergiaSojaCheck = addCheck(condGrid, "Alergia à Soja");
-        ileoCheck = addCheck(condGrid, "Íleo Paralítico");
-        posOpCheck = addCheck(condGrid, "Pós-Op Abdominal");
-        restHidricaCheck = addCheck(condGrid, "Restrição Hídrica");
-        condCard.add(condGrid, BorderLayout.CENTER);
-        form.add(condCard);
-        form.add(Box.createVerticalStrut(10));
+        JPanel antGrid = new JPanel(new GridLayout(0, 3, 20, 15));
+        antGrid.setOpaque(false);
+        pesoField = addCampoModerno(antGrid, "Peso Atual (kg):");
+        alturaField = addCampoModerno(antGrid, "Altura (m):");
+        cbField = addCampoModerno(antGrid, "Circunferência Braço (cm):");
+        antCard.add(antGrid, BorderLayout.CENTER);
+        formScroll.add(antCard);
+        formScroll.add(Box.createVerticalStrut(25));
 
         // --- Botões ---
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
         btnPanel.setOpaque(false);
-        JButton salvarBtn = HospitalTheme.createPrimaryButton("Cadastrar Paciente");
-        JButton limparBtn = HospitalTheme.createSecondaryButton("Limpar Campos");
-        salvarBtn.addActionListener(e -> salvarPaciente());
-        limparBtn.addActionListener(e -> limparCampos());
+        JButton salvarBtn = NutrixTheme.createButton("CADASTRAR PACIENTE", true);
+        JButton limparBtn = NutrixTheme.createButton("LIMPAR", false);
+        
+        salvarBtn.addActionListener(e -> salvar());
         btnPanel.add(salvarBtn);
         btnPanel.add(limparBtn);
-        form.add(btnPanel);
-        form.add(Box.createVerticalStrut(10));
+        formScroll.add(btnPanel);
+        formScroll.add(Box.createVerticalStrut(25));
 
-        // --- Resultado ---
-        resultadoArea = new JTextArea(5, 50);
-        resultadoArea.setFont(HospitalTheme.FONT_MONO);
+        // --- Feedback ---
+        resultadoArea = new JTextArea(4, 50);
+        resultadoArea.setFont(NutrixTheme.FONT_BODY);
         resultadoArea.setEditable(false);
-        resultadoArea.setBackground(HospitalTheme.SURFACE_ALT);
-        resultadoArea.setBorder(new EmptyBorder(10, 10, 10, 10));
-        JScrollPane sp = new JScrollPane(resultadoArea);
-        sp.setBorder(BorderFactory.createTitledBorder("Resultado"));
-        form.add(sp);
+        resultadoArea.setBackground(NutrixTheme.BG_INPUT);
+        resultadoArea.setBorder(new EmptyBorder(15, 15, 15, 15));
+        formScroll.add(resultadoArea);
 
-        JScrollPane mainScroll = new JScrollPane(form);
-        mainScroll.setBorder(null);
-        mainScroll.getVerticalScrollBar().setUnitIncrement(16);
-        add(mainScroll, BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(formScroll);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        add(scroll, BorderLayout.CENTER);
     }
 
-    private JPanel criarSecao(String titulo) {
-        JPanel card = HospitalTheme.createCard();
-        card.setLayout(new BorderLayout(0, 10));
-        JLabel lbl = HospitalTheme.createSubtitle(titulo);
-        card.add(lbl, BorderLayout.NORTH);
-        return card;
+    private JTextField addCampoModerno(JPanel grid, String label) {
+        JPanel p = new JPanel(new BorderLayout(0, 5));
+        p.setOpaque(false);
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixTheme.FONT_SMALL);
+        l.setForeground(NutrixTheme.TEXT_MUTED);
+        JTextField f = NutrixTheme.createTextField();
+        p.add(l, BorderLayout.NORTH);
+        p.add(f, BorderLayout.CENTER);
+        grid.add(p);
+        return f;
     }
 
-    private JTextField addCampo(JPanel grid, String label) {
-        grid.add(HospitalTheme.createLabel(label));
-        JTextField field = HospitalTheme.createTextField();
-        grid.add(field);
-        return field;
-    }
-
-    private JComboBox<String> addCombo(JPanel grid, String label, String[] items) {
-        grid.add(HospitalTheme.createLabel(label));
-        JComboBox<String> cb = HospitalTheme.createComboBox(items);
-        grid.add(cb);
+    private JComboBox<String> addComboModerno(JPanel grid, String label, String[] items) {
+        JPanel p = new JPanel(new BorderLayout(0, 5));
+        p.setOpaque(false);
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixTheme.FONT_SMALL);
+        l.setForeground(NutrixTheme.TEXT_MUTED);
+        JComboBox<String> cb = new JComboBox<>(items);
+        cb.setFont(NutrixTheme.FONT_BODY);
+        p.add(l, BorderLayout.NORTH);
+        p.add(cb, BorderLayout.CENTER);
+        grid.add(p);
         return cb;
     }
 
-    private JCheckBox addCheck(JPanel grid, String label) {
-        JCheckBox cb = new JCheckBox(label);
-        cb.setFont(HospitalTheme.FONT_BODY);
-        cb.setOpaque(false);
-        grid.add(cb);
-        return cb;
-    }
-
-    private double parseDouble(JTextField field) {
-        String text = field.getText().trim().replace(",", ".");
-        if (text.isEmpty()) return 0;
-        return Double.parseDouble(text);
-    }
-
-    private void salvarPaciente() {
+    private void salvar() {
         try {
-            String nome = nomeField.getText().trim();
-            String codigo = codigoField.getText().trim();
-            int idade = Integer.parseInt(idadeField.getText().trim());
-            Genero genero = generoBox.getSelectedIndex() == 0 ? Genero.MASCULINO : Genero.FEMININO;
-            Etnia etnia = etniaBox.getSelectedIndex() == 0 ? Etnia.BRANCO : Etnia.NEGRO;
-            String setor = setorField.getText().trim();
-
-            if (nome.isEmpty() || codigo.isEmpty()) {
-                resultadoArea.setText("⚠ Nome e Código são obrigatórios.");
-                return;
-            }
-
-            Paciente p = new Paciente(nome, codigo, idade, genero, etnia, LocalDate.now(), setor);
-
-            // Medidas
-            p.getMedidas().setPesoAtual(parseDouble(pesoField));
-            p.getMedidas().setAltura(parseDouble(alturaField));
-            p.getMedidas().setCb(parseDouble(cbField));
-            p.getMedidas().setCp(parseDouble(cpField));
-            p.getMedidas().setAj(parseDouble(ajField));
-            p.getMedidas().setCa(parseDouble(caField));
-            p.getMedidas().setCc(parseDouble(ccField));
-            p.getMedidas().setDct(parseDouble(dctField));
-
-            // Condições
-            p.getCondicoes().setObeso(obesoCheck.isSelected());
-            p.getCondicoes().setHemodialiseIntermitente(hdInterCheck.isSelected());
-            p.getCondicoes().setHemodialisesContinua(hdContCheck.isSelected());
-            p.getCondicoes().setAlergiaSoja(alergiaSojaCheck.isSelected());
-            p.getCondicoes().setIleoParalitico(ileoCheck.isSelected());
-            p.getCondicoes().setPosOperatorioAbdominal(posOpCheck.isSelected());
-            p.getCondicoes().setRestricaoHidrica(restHidricaCheck.isSelected());
-
+            Paciente p = new Paciente(nomeField.getText(), codigoField.getText(), 
+                Integer.parseInt(idadeField.getText()), 
+                generoBox.getSelectedIndex() == 0 ? Genero.MASCULINO : Genero.FEMININO,
+                etniaBox.getSelectedIndex() == 0 ? Etnia.BRANCO : Etnia.NEGRO,
+                LocalDate.now(), "UTI");
             repo.adicionar(p);
-
-            resultadoArea.setText("✅ Paciente cadastrado com sucesso!\n\n" + p.toString() +
-                "\nPeso: " + p.getMedidas().getPesoAtual() + " kg" +
-                "\nAltura: " + p.getMedidas().getAltura() + " m" +
-                "\nTotal de pacientes ativos: " + repo.getTotalAtivos());
-
-        } catch (NumberFormatException e) {
-            resultadoArea.setText("⚠ Erro: verifique os campos numéricos.");
+            resultadoArea.setText("✅ Paciente admitido com sucesso: " + p.getNome());
+            resultadoArea.setForeground(NutrixTheme.SUCCESS);
         } catch (Exception e) {
-            resultadoArea.setText("⚠ Erro: " + e.getMessage());
+            resultadoArea.setText("⚠ Erro no cadastro: " + e.getMessage());
+            resultadoArea.setForeground(NutrixTheme.DANGER);
         }
-    }
-
-    private void limparCampos() {
-        nomeField.setText(""); codigoField.setText(""); idadeField.setText("");
-        pesoField.setText(""); alturaField.setText(""); cbField.setText("");
-        cpField.setText(""); ajField.setText(""); caField.setText("");
-        ccField.setText(""); dctField.setText("");
-        obesoCheck.setSelected(false); hdInterCheck.setSelected(false);
-        hdContCheck.setSelected(false); alergiaSojaCheck.setSelected(false);
-        ileoCheck.setSelected(false); posOpCheck.setSelected(false);
-        restHidricaCheck.setSelected(false);
-        resultadoArea.setText("");
-        nomeField.requestFocus();
     }
 }

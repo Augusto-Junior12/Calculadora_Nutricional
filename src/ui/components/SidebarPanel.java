@@ -1,6 +1,6 @@
 package ui.components;
 
-import ui.theme.HospitalTheme;
+import ui.theme.NutrixTheme;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -10,117 +10,160 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Painel de navegação lateral (sidebar).
- * Menu com itens clicáveis que alternam os painéis na área principal.
+ * Sidebar Nutrix Hospital OS.
+ * Estilo moderno com indicador vertical e ícones.
  */
 public class SidebarPanel extends JPanel {
 
     private final List<JPanel> menuItems = new ArrayList<>();
     private int selectedIndex = 0;
+    private NavigationListener listener;
 
     public interface NavigationListener {
         void onNavigate(int index, String panelName);
     }
 
-    private NavigationListener listener;
-
     public SidebarPanel(String[] menuLabels, NavigationListener listener) {
         this.listener = listener;
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(HospitalTheme.SIDEBAR_WIDTH, 0));
-        setBackground(HospitalTheme.SIDEBAR_BG);
+        setPreferredSize(new Dimension(260, 0));
+        setBackground(NutrixTheme.BG_SIDEBAR);
 
-        // Header do sidebar
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(HospitalTheme.PRIMARY_DARK);
-        header.setBorder(new EmptyBorder(20, 16, 20, 16));
+        // --- Logo Section ---
+        JPanel logoPanel = new JPanel(new BorderLayout());
+        logoPanel.setOpaque(false);
+        logoPanel.setBorder(new EmptyBorder(35, 25, 30, 25));
 
-        JLabel logo = new JLabel("🏥 Facilita Nutri");
-        logo.setFont(HospitalTheme.FONT_SIDEBAR_TITLE);
+        JLabel logo = new JLabel("NUTRIX");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         logo.setForeground(Color.WHITE);
-        header.add(logo, BorderLayout.CENTER);
+        
+        JLabel subLogo = new JLabel("HOSPITAL OS");
+        subLogo.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        subLogo.setForeground(NutrixTheme.ACCENT);
+        subLogo.setBorder(new EmptyBorder(-5, 2, 0, 0));
 
-        JLabel versao = new JLabel("UTI v2.0");
-        versao.setFont(HospitalTheme.FONT_SMALL);
-        versao.setForeground(HospitalTheme.SIDEBAR_TEXT);
-        header.add(versao, BorderLayout.SOUTH);
+        JPanel textLogo = new JPanel(new GridLayout(2, 1, 0, -5));
+        textLogo.setOpaque(false);
+        textLogo.add(logo);
+        textLogo.add(subLogo);
+        
+        logoPanel.add(textLogo, BorderLayout.CENTER);
+        add(logoPanel, BorderLayout.NORTH);
 
-        add(header, BorderLayout.NORTH);
+        // --- Menu Section ---
+        JPanel menuContainer = new JPanel();
+        menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
+        menuContainer.setOpaque(false);
+        menuContainer.setBorder(new EmptyBorder(0, 15, 0, 15));
 
-        // Menu items
-        JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
-        menuPanel.setBackground(HospitalTheme.SIDEBAR_BG);
-        menuPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
-
-        String[] icons = {"📊", "👤", "📐", "🎯", "💊", "💧", "🔬", "📋", "🍽", "📈", "📑", "🧪", "📚"};
+        String[] icons = {"▤", "👤", "📏", "🎯", "💊", "💧", "⚙", "🍽", "⚖", "🔍", "📦"};
 
         for (int i = 0; i < menuLabels.length; i++) {
-            JPanel item = criarMenuItem(i < icons.length ? icons[i] : "•", menuLabels[i], i);
+            JPanel item = createMenuItem(i < icons.length ? icons[i] : "•", menuLabels[i], i);
             menuItems.add(item);
-            menuPanel.add(item);
+            menuContainer.add(item);
+            menuContainer.add(Box.createVerticalStrut(6));
         }
 
-        JScrollPane scroll = new JScrollPane(menuPanel);
+        JScrollPane scroll = new JScrollPane(menuContainer);
         scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        scroll.getViewport().setBackground(HospitalTheme.SIDEBAR_BG);
         add(scroll, BorderLayout.CENTER);
 
-        // Footer
+        // --- Footer ---
         JPanel footer = new JPanel(new BorderLayout());
-        footer.setBackground(HospitalTheme.SIDEBAR_BG);
-        footer.setBorder(new EmptyBorder(10, 16, 15, 16));
-        JLabel credits = new JLabel("Augusto Jr — IFS");
-        credits.setFont(HospitalTheme.FONT_SMALL);
-        credits.setForeground(HospitalTheme.TEXT_SECONDARY);
-        footer.add(credits, BorderLayout.CENTER);
+        footer.setOpaque(false);
+        footer.setBorder(new EmptyBorder(20, 25, 25, 25));
+        
+        JLabel userLabel = new JLabel("Nutricionista Ativo");
+        userLabel.setFont(NutrixTheme.FONT_SMALL);
+        userLabel.setForeground(NutrixTheme.TEXT_MUTED);
+        
+        JLabel logout = new JLabel("Sair do Sistema");
+        logout.setFont(NutrixTheme.FONT_BODY_BOLD);
+        logout.setForeground(Color.WHITE);
+        logout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        footer.add(userLabel, BorderLayout.NORTH);
+        footer.add(logout, BorderLayout.CENTER);
         add(footer, BorderLayout.SOUTH);
 
-        // Selecionar primeiro item
-        atualizarSelecao(0);
+        updateSelection(0);
     }
 
-    private JPanel criarMenuItem(String icon, String label, int index) {
-        JPanel item = new JPanel(new BorderLayout());
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        item.setBackground(HospitalTheme.SIDEBAR_BG);
-        item.setBorder(new EmptyBorder(8, 16, 8, 16));
+    private JPanel createMenuItem(String icon, String label, int index) {
+        JPanel item = new JPanel(new BorderLayout(15, 0)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                if (index == selectedIndex) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    NutrixTheme.aplicarAntiAliasing(g2);
+                    g2.setColor(new Color(255, 255, 255, 20));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    
+                    // Indicador vertical
+                    g2.setColor(NutrixTheme.ACCENT);
+                    g2.fillRoundRect(0, 8, 4, getHeight() - 16, 2, 2);
+                    g2.dispose();
+                }
+                super.paintChildren(g);
+            }
+        };
+        item.setOpaque(false);
+        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        item.setBorder(new EmptyBorder(0, 20, 0, 15));
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        JLabel lbl = new JLabel(icon + "  " + label);
-        lbl.setFont(HospitalTheme.FONT_SIDEBAR);
-        lbl.setForeground(HospitalTheme.SIDEBAR_TEXT);
-        item.add(lbl, BorderLayout.CENTER);
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        iconLabel.setForeground(NutrixTheme.TEXT_MUTED);
+
+        JLabel textLabel = new JLabel(label);
+        textLabel.setFont(NutrixTheme.FONT_BODY);
+        textLabel.setForeground(NutrixTheme.TEXT_ON_DARK);
+
+        item.add(iconLabel, BorderLayout.WEST);
+        item.add(textLabel, BorderLayout.CENTER);
 
         item.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 selectedIndex = index;
-                atualizarSelecao(index);
+                updateSelection(index);
                 if (listener != null) listener.onNavigate(index, label);
             }
+            @Override
             public void mouseEntered(MouseEvent e) {
-                if (index != selectedIndex) item.setBackground(HospitalTheme.SIDEBAR_HOVER);
+                if (index != selectedIndex) {
+                    item.setBackground(new Color(255, 255, 255, 10));
+                    item.setOpaque(true);
+                    item.repaint();
+                }
             }
+            @Override
             public void mouseExited(MouseEvent e) {
-                if (index != selectedIndex) item.setBackground(HospitalTheme.SIDEBAR_BG);
+                item.setOpaque(false);
+                item.repaint();
             }
         });
 
         return item;
     }
 
-    private void atualizarSelecao(int index) {
+    private void updateSelection(int index) {
         for (int i = 0; i < menuItems.size(); i++) {
             JPanel item = menuItems.get(i);
             boolean selected = (i == index);
-            item.setBackground(selected ? HospitalTheme.SIDEBAR_ACTIVE : HospitalTheme.SIDEBAR_BG);
-            Component lbl = item.getComponent(0);
-            if (lbl instanceof JLabel) {
-                ((JLabel) lbl).setForeground(selected ? Color.WHITE : HospitalTheme.SIDEBAR_TEXT);
-                ((JLabel) lbl).setFont(selected ? HospitalTheme.FONT_BODY_BOLD : HospitalTheme.FONT_SIDEBAR);
-            }
+            JLabel iconLabel = (JLabel) item.getComponent(0);
+            JLabel textLabel = (JLabel) item.getComponent(1);
+            
+            iconLabel.setForeground(selected ? NutrixTheme.ACCENT : NutrixTheme.TEXT_MUTED);
+            textLabel.setForeground(selected ? Color.WHITE : NutrixTheme.TEXT_ON_DARK);
+            textLabel.setFont(selected ? NutrixTheme.FONT_BODY_BOLD : NutrixTheme.FONT_BODY);
+            item.repaint();
         }
     }
 }
