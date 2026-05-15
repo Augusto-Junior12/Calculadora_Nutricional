@@ -1,131 +1,125 @@
 package ui;
 
-import ui.components.SidebarPanel;
 import ui.panels.*;
+import ui.theme.NutrixIcons;
 import ui.theme.NutrixTheme;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * Nutrix Hospital OS — Frame Principal.
+ * Nutrix Hospital OS — Minimal Hub Edition.
+ * Navegação direta por "Apps" e Top Bar simplificada.
  */
 public class MainFrame extends JFrame {
 
     private final CardLayout cardLayout;
     private final JPanel contentWrapper;
-    private JLabel activePanelLabel;
+    private final JPanel navBar;
 
-    private static final String[] MENU_LABELS = {
-        "Dashboard", "Admissão", "Antropometria", "Metas Nutri.", 
-        "Prescrição", "Hidratação", "Monitor UTI", "Ingestão Oral", 
-        "Qualidade (P×I)", "Fórmulas", "Sistema Aberto"
+    private static final String[] APPS = {
+        "DASHBOARD", "PACIENTES", "ANTROPOMETRIA", "METAS", 
+        "PRESCRIÇÃO", "HIDRATAÇÃO", "CLÍNICO", "INGESTÃO", "QUALIDADE", "FÓRMULAS"
     };
 
-    private static final String[] PANEL_KEYS = {
+    private static final String[] KEYS = {
         "dashboard", "cadastro", "antropometria", "necessidades",
-        "prescricao", "hidratacao", "calculos", "ingestao",
-        "infundido", "formulas", "tneaberta"
+        "prescricao", "hidratacao", "calculos", "ingestao", "infundido", "formulas"
     };
 
     public MainFrame() {
-        super("Nutrix Hospital OS v2.0");
+        super("Nutrix");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1350, 880);
+        setSize(1200, 800);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(Color.WHITE);
 
-        // Main Container
-        JPanel mainContainer = new JPanel(new BorderLayout());
-        mainContainer.setBackground(NutrixTheme.BG_MAIN);
+        // --- Layout Principal: Top Nav + Content ---
+        setLayout(new BorderLayout());
 
-        // --- Right Side Wrapper ---
-        JPanel rightSide = new JPanel(new BorderLayout());
-        rightSide.setOpaque(false);
-
-        // Global Header (Top Bar)
-        JPanel header = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                NutrixTheme.aplicarAntiAliasing(g2);
-                g2.setColor(Color.WHITE);
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.setColor(NutrixTheme.BORDER);
-                g2.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
-                g2.dispose();
-            }
-        };
-        header.setPreferredSize(new Dimension(0, 75));
-        header.setBorder(new EmptyBorder(0, 60, 0, 60));
-
-        activePanelLabel = new JLabel("DASHBOARD");
-        activePanelLabel.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 18));
-        activePanelLabel.setForeground(NutrixTheme.PRIMARY);
-        header.add(activePanelLabel, BorderLayout.WEST);
-
-        // Session Info Badge
-        JPanel sessionBadge = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        sessionBadge.setOpaque(false);
+        // Top Navigation Bar (Modular & Direct)
+        navBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 0));
+        navBar.setBackground(Color.WHITE);
+        navBar.setPreferredSize(new Dimension(0, 70));
+        navBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, NutrixTheme.BORDER));
         
-        JLabel user = new JLabel("Dr. Augusto Junior");
-        user.setFont(NutrixTheme.FONT_BODY_BOLD);
-        user.setForeground(NutrixTheme.TEXT_H1);
-        
-        JLabel role = new JLabel("Nutricionista Chefe");
-        role.setFont(NutrixTheme.FONT_SMALL);
-        role.setForeground(NutrixTheme.TEXT_MUTED);
-        
-        JPanel textGrp = new JPanel(new GridLayout(2, 1, 0, -2));
-        textGrp.setOpaque(false);
-        textGrp.add(user);
-        textGrp.add(role);
-        
-        sessionBadge.add(textGrp);
-        header.add(sessionBadge, BorderLayout.EAST);
+        // Brand Logo
+        JLabel brand = new JLabel("NUTRIX");
+        brand.setFont(new Font("Inter", Font.BOLD, 20));
+        brand.setForeground(NutrixTheme.TEXT_PRIMARY);
+        brand.setBorder(new EmptyBorder(0, 30, 0, 40));
+        navBar.add(brand);
+
+        // Navigation Items
+        for (int i = 0; i < APPS.length; i++) {
+            navBar.add(createNavLink(APPS[i], i));
+        }
+
+        add(navBar, BorderLayout.NORTH);
 
         // Content Area
         cardLayout = new CardLayout();
         contentWrapper = new JPanel(cardLayout);
         contentWrapper.setOpaque(false);
+        contentWrapper.setBorder(new EmptyBorder(40, 60, 40, 60));
 
-        // Adicionar painéis
-        contentWrapper.add(new DashboardPanel(), PANEL_KEYS[0]);
-        contentWrapper.add(new PacienteCadastroPanel(), PANEL_KEYS[1]);
-        contentWrapper.add(new AntropometriaPanel(), PANEL_KEYS[2]);
-        contentWrapper.add(new NecessidadesPanel(), PANEL_KEYS[3]);
-        contentWrapper.add(new PrescricaoPanel(), PANEL_KEYS[4]);
-        contentWrapper.add(new HidratacaoPanel(), PANEL_KEYS[5]);
-        contentWrapper.add(new CalculosClinicosPanel(), PANEL_KEYS[6]);
-        contentWrapper.add(new IngestaoOralPanel(), PANEL_KEYS[7]);
-        contentWrapper.add(new PrescritoInfundidoPanel(), PANEL_KEYS[8]);
-        contentWrapper.add(new ConsultaFormulasPanel(), PANEL_KEYS[9]);
-        contentWrapper.add(new TNEAbertaPanel(), PANEL_KEYS[10]);
+        // Registrar painéis
+        contentWrapper.add(new DashboardPanel(), KEYS[0]);
+        contentWrapper.add(new PacienteCadastroPanel(), KEYS[1]);
+        contentWrapper.add(new AntropometriaPanel(), KEYS[2]);
+        contentWrapper.add(new NecessidadesPanel(), KEYS[3]);
+        contentWrapper.add(new PrescricaoPanel(), KEYS[4]);
+        contentWrapper.add(new HidratacaoPanel(), KEYS[5]);
+        contentWrapper.add(new CalculosClinicosPanel(), KEYS[6]);
+        contentWrapper.add(new IngestaoOralPanel(), KEYS[7]);
+        contentWrapper.add(new PrescritoInfundidoPanel(), KEYS[8]);
+        contentWrapper.add(new ConsultaFormulasPanel(), KEYS[9]);
 
-        // --- Sidebar ---
-        SidebarPanel sidebar = new SidebarPanel(MENU_LABELS, (index, name) -> {
-            cardLayout.show(contentWrapper, PANEL_KEYS[index]);
-            activePanelLabel.setText(name.toUpperCase());
+        add(contentWrapper, BorderLayout.CENTER);
+        
+        showApp(0);
+    }
+
+    private JLabel createNavLink(String text, int index) {
+        JLabel link = new JLabel(text);
+        link.setFont(new Font("Inter", Font.BOLD, 12));
+        link.setForeground(NutrixTheme.TEXT_SECONDARY);
+        link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        link.setBorder(new EmptyBorder(25, 0, 25, 0));
+
+        link.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                showApp(index);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                link.setForeground(NutrixTheme.ACCENT);
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (!link.getForeground().equals(NutrixTheme.ACCENT)) {
+                    link.setForeground(NutrixTheme.TEXT_SECONDARY);
+                }
+            }
         });
+        return link;
+    }
 
-        rightSide.add(header, BorderLayout.NORTH);
-        rightSide.add(contentWrapper, BorderLayout.CENTER);
-
-        mainContainer.add(sidebar, BorderLayout.WEST);
-        mainContainer.add(rightSide, BorderLayout.CENTER);
-
-        add(mainContainer);
+    private void showApp(int index) {
+        cardLayout.show(contentWrapper, KEYS[index]);
+        for (Component c : navBar.getComponents()) {
+            if (c instanceof JLabel && !((JLabel)c).getText().equals("NUTRIX")) {
+                ((JLabel)c).setForeground(NutrixTheme.TEXT_SECONDARY);
+            }
+        }
+        ((JLabel)navBar.getComponent(index + 1)).setForeground(NutrixTheme.ACCENT);
     }
 
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
-
+        System.setProperty("awt.useSystemAAFontSettings","on");
+        System.setProperty("swing.aatext", "true");
+        
         SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame();
-            frame.setVisible(true);
+            new MainFrame().setVisible(true);
         });
     }
 }

@@ -1,129 +1,112 @@
 package ui.panels;
 
-import model.AlertaClinico;
-import model.enums.ClassificacaoCB;
-import model.enums.ClassificacaoIMC;
-import model.enums.Etnia;
-import model.enums.Genero;
 import service.AntropometriaService;
 import ui.theme.NutrixTheme;
 import util.Formatador;
+import model.enums.Genero;
+import model.enums.Etnia;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Avaliação Antropométrica — Nutrix Hospital OS.
+ * Antropometria Direta — Nutrix.
  */
 public class AntropometriaPanel extends JPanel {
 
     private final AntropometriaService service = new AntropometriaService();
-    private JTextField ajField, cbField, cpField, idadeField, pesoAtualField, alturaField;
-    private JComboBox<String> generoBox, etniaBox;
-    private JTextArea resultadoArea;
+    private JTextField fIdade, fPeso, fAltura, fAJ, fCB;
+    private JComboBox<String> cGenero;
+    private JTextArea resArea;
 
     public AntropometriaPanel() {
-        setLayout(new BorderLayout(0, 25));
-        setBackground(NutrixTheme.BG_MAIN);
-        setBorder(new EmptyBorder(30, 45, 30, 45));
+        setLayout(new BorderLayout(48, 0));
+        setBackground(Color.WHITE);
 
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setOpaque(false);
+        // Left Side: Inputs
+        JPanel left = new JPanel();
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+        left.setOpaque(false);
+        left.setPreferredSize(new Dimension(400, 0));
 
-        // --- Input Card ---
-        JPanel inputCard = NutrixTheme.createCard();
-        inputCard.setLayout(new BorderLayout(0, 20));
-        JLabel t = new JLabel("PARÂMETROS ANTROPOMÉTRICOS");
-        t.setFont(NutrixTheme.FONT_H3);
-        t.setForeground(NutrixTheme.ACCENT);
-        inputCard.add(t, BorderLayout.NORTH);
+        JLabel title = new JLabel("Avaliação Antropométrica");
+        title.setFont(NutrixTheme.H2);
+        title.setBorder(new EmptyBorder(0, 0, 32, 0));
+        left.add(title);
 
-        JPanel grid = new JPanel(new GridLayout(0, 4, 15, 15));
-        grid.setOpaque(false);
-        idadeField = addField(grid, "Idade:");
-        generoBox = addCombo(grid, "Gênero:", new String[]{"Masculino", "Feminino"});
-        etniaBox = addCombo(grid, "Etnia:", new String[]{"Branco", "Negro"});
-        pesoAtualField = addField(grid, "Peso Atual (kg):");
-        alturaField = addField(grid, "Altura (m):");
-        ajField = addField(grid, "Alt. Joelho (cm):");
-        cbField = addField(grid, "Circ. Braço (cm):");
-        cpField = addField(grid, "Circ. Pant. (cm):");
-        inputCard.add(grid, BorderLayout.CENTER);
-        content.add(inputCard);
-        content.add(Box.createVerticalStrut(25));
+        fIdade = addInput(left, "Idade (anos)");
+        cGenero = addCombo(left, "Gênero", new String[]{"Masculino", "Feminino"});
+        fPeso = addInput(left, "Peso Atual (kg)");
+        fAltura = addInput(left, "Altura Atual (m)");
+        fAJ = addInput(left, "Altura do Joelho (cm)");
+        fCB = addInput(left, "Circunferência do Braço (cm)");
 
-        // --- Buttons ---
-        JButton calcBtn = NutrixTheme.createButton("CALCULAR ESTIMATIVAS", true);
-        calcBtn.addActionListener(e -> calcular());
-        JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        btnWrap.setOpaque(false);
-        btnWrap.add(calcBtn);
-        content.add(btnWrap);
-        content.add(Box.createVerticalStrut(25));
+        left.add(Box.createVerticalStrut(24));
+        JButton btn = NutrixTheme.createPrimaryButton("CALCULAR");
+        btn.addActionListener(e -> calcular());
+        left.add(btn);
 
-        // --- Result Area ---
-        resultadoArea = new JTextArea(12, 50);
-        resultadoArea.setFont(new Font("Consolas", Font.PLAIN, 13));
-        resultadoArea.setEditable(false);
-        resultadoArea.setBackground(NutrixTheme.BG_INPUT);
-        resultadoArea.setBorder(new EmptyBorder(20, 20, 20, 20));
-        content.add(new JScrollPane(resultadoArea));
+        add(left, BorderLayout.WEST);
 
-        add(content, BorderLayout.CENTER);
+        // Right Side: Results
+        JPanel right = new JPanel(new BorderLayout());
+        right.setBackground(NutrixTheme.BG_SURFACE);
+        right.setBorder(new EmptyBorder(32, 32, 32, 32));
+
+        resArea = new JTextArea();
+        resArea.setFont(new Font("JetBrains Mono", Font.PLAIN, 14)); // Mono para tabelas
+        resArea.setEditable(false);
+        resArea.setOpaque(false);
+        right.add(new JScrollPane(resArea), BorderLayout.CENTER);
+
+        add(right, BorderLayout.CENTER);
     }
 
     private void calcular() {
         try {
-            int idade = Integer.parseInt(idadeField.getText());
-            Genero g = generoBox.getSelectedIndex() == 0 ? Genero.MASCULINO : Genero.FEMININO;
-            Etnia e = etniaBox.getSelectedIndex() == 0 ? Etnia.BRANCO : Etnia.NEGRO;
-            double aj = parse(ajField), cb = parse(cbField), cp = parse(cpField);
+            int idade = Integer.parseInt(fIdade.getText());
+            Genero g = cGenero.getSelectedIndex() == 0 ? Genero.MASCULINO : Genero.FEMININO;
+            double aj = Double.parseDouble(fAJ.getText().replace(",", "."));
+            double cb = Double.parseDouble(fCB.getText().replace(",", "."));
             
-            List<AlertaClinico> alertas = new ArrayList<>();
-            double altEst = service.calcularAlturaEstimada(g, aj, idade, alertas);
-            double pesoEst = service.calcularPesoEstimado(g, e, idade, aj, cb, alertas);
-            double imc = service.calcularIMC(pesoEst, altEst);
+            double altEst = service.calcularAlturaEstimada(g, aj, idade, new ArrayList<>());
+            double pesoEst = service.calcularPesoEstimado(g, Etnia.BRANCO, idade, aj, cb, new ArrayList<>());
             
             StringBuilder sb = new StringBuilder();
-            sb.append("📊 RELATÓRIO ANTROPOMÉTRICO\n");
-            sb.append("------------------------------------------\n");
-            sb.append(String.format("Altura Estimada (Chumlea): %s\n", Formatador.metros(altEst)));
-            sb.append(String.format("Peso Estimado (Chumlea):   %s\n", Formatador.kg(pesoEst)));
-            sb.append(String.format("IMC Estimado:              %s (%s)\n", 
-                Formatador.decimal2(imc), service.classificarIMC(imc, idade).getDescricao()));
+            sb.append("RESULTADOS ESTIMADOS\n");
+            sb.append("==============================\n\n");
+            sb.append(String.format("%-20s %s\n", "Altura (Chumlea):", Formatador.metros(altEst)));
+            sb.append(String.format("%-20s %s\n", "Peso (Chumlea):", Formatador.kg(pesoEst)));
+            sb.append(String.format("%-20s %s\n", "IMC Estimado:", Formatador.decimal1(service.calcularIMC(pesoEst, altEst))));
             
-            if (cp > 0) {
-                sb.append(String.format("Depleção Muscular:        %s\n", 
-                    service.verificarDepleçaoMuscular(cp, g) ? "RISCO DETECTADO" : "Normal"));
-            }
-            
-            resultadoArea.setText(sb.toString());
-            resultadoArea.setForeground(NutrixTheme.TEXT_BODY);
+            resArea.setText(sb.toString());
         } catch (Exception ex) {
-            resultadoArea.setText("⚠ Erro nos dados: " + ex.getMessage());
+            resArea.setText("Verifique os campos obrigatórios.");
         }
     }
 
-    private JTextField addField(JPanel g, String l) {
-        JPanel p = new JPanel(new BorderLayout(0, 5)); p.setOpaque(false);
-        JLabel lbl = new JLabel(l); lbl.setFont(NutrixTheme.FONT_SMALL); lbl.setForeground(NutrixTheme.TEXT_MUTED);
-        JTextField f = NutrixTheme.createTextField(); p.add(lbl, BorderLayout.NORTH); p.add(f, BorderLayout.CENTER);
-        g.add(p); return f;
+    private JTextField addInput(JPanel p, String label) {
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixTheme.H3);
+        l.setBorder(new EmptyBorder(0, 0, 8, 0));
+        p.add(l);
+        JTextField f = NutrixTheme.createInput();
+        p.add(f);
+        p.add(Box.createVerticalStrut(16));
+        return f;
     }
 
-    private JComboBox<String> addCombo(JPanel g, String l, String[] i) {
-        JPanel p = new JPanel(new BorderLayout(0, 5)); p.setOpaque(false);
-        JLabel lbl = new JLabel(l); lbl.setFont(NutrixTheme.FONT_SMALL); lbl.setForeground(NutrixTheme.TEXT_MUTED);
-        JComboBox<String> c = new JComboBox<>(i); p.add(lbl, BorderLayout.NORTH); p.add(c, BorderLayout.CENTER);
-        g.add(p); return c;
-    }
-
-    private double parse(JTextField f) {
-        String t = f.getText().trim().replace(",", ".");
-        return t.isEmpty() ? 0 : Double.parseDouble(t);
+    private JComboBox<String> addCombo(JPanel p, String label, String[] items) {
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixTheme.H3);
+        l.setBorder(new EmptyBorder(0, 0, 8, 0));
+        p.add(l);
+        JComboBox<String> c = new JComboBox<>(items);
+        c.setFont(NutrixTheme.BODY);
+        p.add(c);
+        p.add(Box.createVerticalStrut(16));
+        return c;
     }
 }

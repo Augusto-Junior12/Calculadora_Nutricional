@@ -1,6 +1,5 @@
 package ui.panels;
 
-import model.AlertaClinico;
 import model.FormulaEnteral;
 import model.Prescricao;
 import repository.FormulaEnteralRepository;
@@ -12,114 +11,99 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Prescrição de Dieta — Nutrix Hospital OS.
- */
 public class PrescricaoPanel extends JPanel {
 
     private final PrescricaoService service = new PrescricaoService();
-    private final FormulaEnteralRepository formulaRepo = FormulaEnteralRepository.getInstance();
-    private JTextField pesoField, vctField, ptnField;
-    private JComboBox<String> formulaBox;
-    private JTextArea resultadoArea;
+    private JTextField fPeso, fVCT, fPTN;
+    private JComboBox<String> fFormula;
+    private JTextArea resArea;
 
     public PrescricaoPanel() {
-        setLayout(new BorderLayout(0, 25));
-        setBackground(NutrixTheme.BG_MAIN);
-        setBorder(new EmptyBorder(30, 45, 30, 45));
+        setLayout(new BorderLayout(48, 0));
+        setBackground(Color.WHITE);
 
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setOpaque(false);
+        JPanel left = new JPanel();
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+        left.setOpaque(false);
+        left.setPreferredSize(new Dimension(400, 0));
 
-        // --- Config Card ---
-        JPanel card = NutrixTheme.createCard();
-        card.setLayout(new BorderLayout(0, 20));
-        JLabel t = new JLabel("CONFIGURAÇÃO DA PRESCRIÇÃO TNE");
-        t.setFont(NutrixTheme.FONT_H3);
-        t.setForeground(NutrixTheme.ACCENT);
-        card.add(t, BorderLayout.NORTH);
+        JLabel title = new JLabel("Prescrição de Dieta");
+        title.setFont(NutrixTheme.H2);
+        title.setBorder(new EmptyBorder(0, 0, 32, 0));
+        left.add(title);
 
-        JPanel grid = new JPanel(new GridLayout(0, 3, 20, 15));
-        grid.setOpaque(false);
-        pesoField = addField(grid, "Peso de Referência (kg):");
-        vctField = addField(grid, "Meta Calórica (kcal):");
-        ptnField = addField(grid, "Meta Proteica (g):");
+        fPeso = addInput(left, "Peso de Referência (kg)");
+        fVCT = addInput(left, "Meta Calórica (kcal)");
+        fPTN = addInput(left, "Meta Proteica (g)");
         
-        List<FormulaEnteral> formulas = formulaRepo.listarTodas();
+        java.util.List<FormulaEnteral> formulas = FormulaEnteralRepository.getInstance().listarTodas();
         String[] nomes = new String[formulas.size()];
-        for (int i = 0; i < formulas.size(); i++) nomes[i] = formulas.get(i).getNome();
-        formulaBox = addCombo(grid, "Fórmula Enteral:", nomes);
-        
-        card.add(grid, BorderLayout.CENTER);
-        content.add(card);
-        content.add(Box.createVerticalStrut(25));
+        for(int i=0; i<formulas.size(); i++) nomes[i] = formulas.get(i).getNome();
+        fFormula = addCombo(left, "Fórmula Enteral", nomes);
 
-        // --- Buttons ---
-        JButton calcBtn = NutrixTheme.createButton("GERAR PRESCRIÇÃO", true);
-        calcBtn.addActionListener(e -> calcular());
-        JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        btnWrap.setOpaque(false);
-        btnWrap.add(calcBtn);
-        content.add(btnWrap);
-        content.add(Box.createVerticalStrut(25));
+        left.add(Box.createVerticalStrut(24));
+        JButton btn = NutrixTheme.createPrimaryButton("GERAR PRESCRIÇÃO");
+        btn.addActionListener(e -> calcular());
+        left.add(btn);
 
-        // --- Result Area ---
-        resultadoArea = new JTextArea(15, 50);
-        resultadoArea.setFont(new Font("Consolas", Font.PLAIN, 13));
-        resultadoArea.setEditable(false);
-        resultadoArea.setBackground(NutrixTheme.BG_INPUT);
-        resultadoArea.setBorder(new EmptyBorder(20, 20, 20, 20));
-        content.add(new JScrollPane(resultadoArea));
+        add(left, BorderLayout.WEST);
 
-        add(content, BorderLayout.CENTER);
+        resArea = new JTextArea();
+        resArea.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
+        resArea.setEditable(false);
+        resArea.setBackground(NutrixTheme.BG_SURFACE);
+        resArea.setBorder(new EmptyBorder(32, 32, 32, 32));
+        add(new JScrollPane(resArea), BorderLayout.CENTER);
     }
 
     private void calcular() {
         try {
-            double peso = parse(pesoField), vct = parse(vctField), ptn = parse(ptnField);
-            FormulaEnteral formula = formulaRepo.listarTodas().get(formulaBox.getSelectedIndex());
-            List<AlertaClinico> alertas = new ArrayList<>();
+            double p = Double.parseDouble(fPeso.getText().replace(",", "."));
+            double vct = Double.parseDouble(fVCT.getText().replace(",", "."));
+            double ptn = Double.parseDouble(fPTN.getText().replace(",", "."));
+            FormulaEnteral f = FormulaEnteralRepository.getInstance().listarTodas().get(fFormula.getSelectedIndex());
             
-            Prescricao p = service.calcularContinuo(formula, peso, vct, ptn, 22, alertas);
+            Prescricao res = service.calcularContinuo(f, p, vct, ptn, 22, new ArrayList<>());
             
             StringBuilder sb = new StringBuilder();
-            sb.append("📋 PRESCRIÇÃO NUTRICIONAL DETALHADA\n");
-            sb.append("------------------------------------------\n");
-            sb.append("Volume:          ").append(Formatador.mlH(p.getVolumeMlH())).append("\n");
-            sb.append("Volume Total:    ").append(Formatador.ml(p.getVolumeTotal())).append("\n");
-            sb.append("Aporte Calórico: ").append(Formatador.kcal(p.getKcalTotais())).append("\n");
-            sb.append("Aporte Proteico: ").append(Formatador.gramas(p.getPtnTotal())).append("\n");
-            sb.append("------------------------------------------\n");
-            sb.append("PROGRESSÃO SUGERIDA (R04):\n");
-            sb.append("Dia 1 (25%):  ").append(Formatador.mlH(p.getVolumeProgressao()[0])).append("\n");
-            sb.append("Dia 2 (50%):  ").append(Formatador.mlH(p.getVolumeProgressao()[1])).append("\n");
-            sb.append("Dia 4 (100%): ").append(Formatador.mlH(p.getVolumeProgressao()[3])).append("\n");
+            sb.append("DETALHAMENTO DA PRESCRIÇÃO\n");
+            sb.append("==============================\n\n");
+            sb.append(String.format("%-20s %s\n", "Volume Horário:", Formatador.mlH(res.getVolumeMlH())));
+            sb.append(String.format("%-20s %s\n", "Volume Total:", Formatador.ml(res.getVolumeTotal())));
+            sb.append(String.format("%-20s %s\n", "Calorias Totais:", Formatador.kcal(res.getKcalTotais())));
+            sb.append(String.format("%-20s %s\n", "Proteínas Totais:", Formatador.gramas(res.getPtnTotal())));
+            sb.append("\nPROGRESSÃO (R04):\n");
+            sb.append("Dia 1: ").append(Formatador.mlH(res.getVolumeProgressao()[0])).append("\n");
+            sb.append("Dia 2: ").append(Formatador.mlH(res.getVolumeProgressao()[1])).append("\n");
+            sb.append("Dia 4: ").append(Formatador.mlH(res.getVolumeProgressao()[3])).append("\n");
             
-            resultadoArea.setText(sb.toString());
+            resArea.setText(sb.toString());
         } catch (Exception ex) {
-            resultadoArea.setText("⚠ Erro no cálculo: " + ex.getMessage());
+            resArea.setText("Erro no cálculo. Verifique os dados.");
         }
     }
 
-    private JTextField addField(JPanel g, String l) {
-        JPanel p = new JPanel(new BorderLayout(0, 5)); p.setOpaque(false);
-        JLabel lbl = new JLabel(l); lbl.setFont(NutrixTheme.FONT_SMALL); lbl.setForeground(NutrixTheme.TEXT_MUTED);
-        JTextField f = NutrixTheme.createTextField(); p.add(lbl, BorderLayout.NORTH); p.add(f, BorderLayout.CENTER);
-        g.add(p); return f;
+    private JTextField addInput(JPanel p, String label) {
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixTheme.H3);
+        l.setBorder(new EmptyBorder(0, 0, 8, 0));
+        p.add(l);
+        JTextField f = NutrixTheme.createInput();
+        p.add(f);
+        p.add(Box.createVerticalStrut(16));
+        return f;
     }
 
-    private JComboBox<String> addCombo(JPanel g, String l, String[] i) {
-        JPanel p = new JPanel(new BorderLayout(0, 5)); p.setOpaque(false);
-        JLabel lbl = new JLabel(l); lbl.setFont(NutrixTheme.FONT_SMALL); lbl.setForeground(NutrixTheme.TEXT_MUTED);
-        JComboBox<String> c = new JComboBox<>(i); p.add(lbl, BorderLayout.NORTH); p.add(c, BorderLayout.CENTER);
-        g.add(p); return c;
-    }
-
-    private double parse(JTextField f) {
-        String t = f.getText().trim().replace(",", ".");
-        return t.isEmpty() ? 0 : Double.parseDouble(t);
+    private JComboBox<String> addCombo(JPanel p, String label, String[] items) {
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixTheme.H3);
+        l.setBorder(new EmptyBorder(0, 0, 8, 0));
+        p.add(l);
+        JComboBox<String> c = new JComboBox<>(items);
+        c.setFont(NutrixTheme.BODY);
+        p.add(c);
+        p.add(Box.createVerticalStrut(16));
+        return c;
     }
 }

@@ -1,8 +1,8 @@
 package ui.panels;
 
 import model.Paciente;
-import model.enums.Etnia;
 import model.enums.Genero;
+import model.enums.Etnia;
 import repository.PacienteRepository;
 import ui.theme.NutrixTheme;
 
@@ -10,134 +10,80 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
-/**
- * Cadastro de Pacientes — Nutrix Hospital OS.
- */
 public class PacienteCadastroPanel extends JPanel {
 
-    private final JTextField nomeField, codigoField, idadeField;
-    private final JTextField pesoField, alturaField, cbField;
-    private final JComboBox<String> generoBox, etniaBox;
-    private final JTextArea resultadoArea;
-    private final PacienteRepository repo;
+    private JTextField fNome, fRH, fIdade;
+    private JComboBox<String> cGenero;
+    private JTextArea resArea;
 
     public PacienteCadastroPanel() {
-        repo = PacienteRepository.getInstance();
-        setLayout(new BorderLayout(0, 25));
-        setBackground(NutrixTheme.BG_MAIN);
-        setBorder(new EmptyBorder(30, 45, 30, 45));
+        setLayout(new BorderLayout(48, 0));
+        setBackground(Color.WHITE);
 
-        JPanel formScroll = new JPanel();
-        formScroll.setLayout(new BoxLayout(formScroll, BoxLayout.Y_AXIS));
-        formScroll.setOpaque(false);
+        JPanel left = new JPanel();
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+        left.setOpaque(false);
+        left.setPreferredSize(new Dimension(400, 0));
 
-        // --- Seção de Identificação ---
-        JPanel idCard = NutrixTheme.createCard();
-        idCard.setLayout(new BorderLayout(0, 20));
-        
-        JLabel idTitle = new JLabel("DADOS DE IDENTIFICAÇÃO");
-        idTitle.setFont(NutrixTheme.FONT_H3);
-        idTitle.setForeground(NutrixTheme.ACCENT);
-        idCard.add(idTitle, BorderLayout.NORTH);
+        JLabel title = new JLabel("Admissão de Paciente");
+        title.setFont(NutrixTheme.H2);
+        title.setBorder(new EmptyBorder(0, 0, 32, 0));
+        left.add(title);
 
-        JPanel idGrid = new JPanel(new GridLayout(0, 3, 20, 15));
-        idGrid.setOpaque(false);
-        nomeField = addCampoModerno(idGrid, "Nome Completo:");
-        codigoField = addCampoModerno(idGrid, "Registro Hospitalar (RH):");
-        idadeField = addCampoModerno(idGrid, "Idade:");
-        generoBox = addComboModerno(idGrid, "Gênero:", new String[]{"Masculino", "Feminino"});
-        etniaBox = addComboModerno(idGrid, "Etnia:", new String[]{"Branco", "Negro"});
-        addCampoModerno(idGrid, "Setor UTI:");
-        idCard.add(idGrid, BorderLayout.CENTER);
-        formScroll.add(idCard);
-        formScroll.add(Box.createVerticalStrut(25));
+        fNome = addInput(left, "Nome Completo");
+        fRH = addInput(left, "Registro Hospitalar (RH)");
+        fIdade = addInput(left, "Idade");
+        cGenero = addCombo(left, "Gênero", new String[]{"Masculino", "Feminino"});
 
-        // --- Seção de Antropometria ---
-        JPanel antCard = NutrixTheme.createCard();
-        antCard.setLayout(new BorderLayout(0, 20));
-        JLabel antTitle = new JLabel("ANTROPOMETRIA INICIAL");
-        antTitle.setFont(NutrixTheme.FONT_H3);
-        antTitle.setForeground(NutrixTheme.ACCENT);
-        antCard.add(antTitle, BorderLayout.NORTH);
+        left.add(Box.createVerticalStrut(24));
+        JButton btn = NutrixTheme.createPrimaryButton("ADMITIR");
+        btn.addActionListener(e -> admitir());
+        left.add(btn);
 
-        JPanel antGrid = new JPanel(new GridLayout(0, 3, 20, 15));
-        antGrid.setOpaque(false);
-        pesoField = addCampoModerno(antGrid, "Peso Atual (kg):");
-        alturaField = addCampoModerno(antGrid, "Altura (m):");
-        cbField = addCampoModerno(antGrid, "Circunferência Braço (cm):");
-        antCard.add(antGrid, BorderLayout.CENTER);
-        formScroll.add(antCard);
-        formScroll.add(Box.createVerticalStrut(25));
+        add(left, BorderLayout.WEST);
 
-        // --- Botões ---
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        btnPanel.setOpaque(false);
-        JButton salvarBtn = NutrixTheme.createButton("CADASTRAR PACIENTE", true);
-        JButton limparBtn = NutrixTheme.createButton("LIMPAR", false);
-        
-        salvarBtn.addActionListener(e -> salvar());
-        btnPanel.add(salvarBtn);
-        btnPanel.add(limparBtn);
-        formScroll.add(btnPanel);
-        formScroll.add(Box.createVerticalStrut(25));
-
-        // --- Feedback ---
-        resultadoArea = new JTextArea(4, 50);
-        resultadoArea.setFont(NutrixTheme.FONT_BODY);
-        resultadoArea.setEditable(false);
-        resultadoArea.setBackground(NutrixTheme.BG_INPUT);
-        resultadoArea.setBorder(new EmptyBorder(15, 15, 15, 15));
-        formScroll.add(resultadoArea);
-
-        JScrollPane scroll = new JScrollPane(formScroll);
-        scroll.setBorder(null);
-        scroll.setOpaque(false);
-        scroll.getViewport().setOpaque(false);
-        add(scroll, BorderLayout.CENTER);
+        resArea = new JTextArea();
+        resArea.setFont(NutrixTheme.BODY);
+        resArea.setEditable(false);
+        resArea.setBackground(NutrixTheme.BG_SURFACE);
+        resArea.setBorder(new EmptyBorder(32, 32, 32, 32));
+        add(new JScrollPane(resArea), BorderLayout.CENTER);
     }
 
-    private JTextField addCampoModerno(JPanel grid, String label) {
-        JPanel p = new JPanel(new BorderLayout(0, 5));
-        p.setOpaque(false);
+    private void admitir() {
+        try {
+            Paciente p = new Paciente(fNome.getText(), fRH.getText(), 
+                Integer.parseInt(fIdade.getText()), 
+                cGenero.getSelectedIndex() == 0 ? Genero.MASCULINO : Genero.FEMININO,
+                Etnia.BRANCO, LocalDate.now(), "UTI");
+            PacienteRepository.getInstance().adicionar(p);
+            resArea.setText("✅ PACIENTE ADMITIDO\n\nNome: " + p.getNome() + "\nRH: " + p.getCodigo());
+        } catch (Exception ex) {
+            resArea.setText("Erro ao admitir. Verifique os dados.");
+        }
+    }
+
+    private JTextField addInput(JPanel p, String label) {
         JLabel l = new JLabel(label);
-        l.setFont(NutrixTheme.FONT_SMALL);
-        l.setForeground(NutrixTheme.TEXT_MUTED);
-        JTextField f = NutrixTheme.createTextField();
-        p.add(l, BorderLayout.NORTH);
-        p.add(f, BorderLayout.CENTER);
-        grid.add(p);
+        l.setFont(NutrixTheme.H3);
+        l.setBorder(new EmptyBorder(0, 0, 8, 0));
+        p.add(l);
+        JTextField f = NutrixTheme.createInput();
+        p.add(f);
+        p.add(Box.createVerticalStrut(16));
         return f;
     }
 
-    private JComboBox<String> addComboModerno(JPanel grid, String label, String[] items) {
-        JPanel p = new JPanel(new BorderLayout(0, 5));
-        p.setOpaque(false);
+    private JComboBox<String> addCombo(JPanel p, String label, String[] items) {
         JLabel l = new JLabel(label);
-        l.setFont(NutrixTheme.FONT_SMALL);
-        l.setForeground(NutrixTheme.TEXT_MUTED);
-        JComboBox<String> cb = new JComboBox<>(items);
-        cb.setFont(NutrixTheme.FONT_BODY);
-        p.add(l, BorderLayout.NORTH);
-        p.add(cb, BorderLayout.CENTER);
-        grid.add(p);
-        return cb;
-    }
-
-    private void salvar() {
-        try {
-            Paciente p = new Paciente(nomeField.getText(), codigoField.getText(), 
-                Integer.parseInt(idadeField.getText()), 
-                generoBox.getSelectedIndex() == 0 ? Genero.MASCULINO : Genero.FEMININO,
-                etniaBox.getSelectedIndex() == 0 ? Etnia.BRANCO : Etnia.NEGRO,
-                LocalDate.now(), "UTI");
-            repo.adicionar(p);
-            resultadoArea.setText("✅ Paciente admitido com sucesso: " + p.getNome());
-            resultadoArea.setForeground(NutrixTheme.SUCCESS);
-        } catch (Exception e) {
-            resultadoArea.setText("⚠ Erro no cadastro: " + e.getMessage());
-            resultadoArea.setForeground(NutrixTheme.DANGER);
-        }
+        l.setFont(NutrixTheme.H3);
+        l.setBorder(new EmptyBorder(0, 0, 8, 0));
+        p.add(l);
+        JComboBox<String> c = new JComboBox<>(items);
+        c.setFont(NutrixTheme.BODY);
+        p.add(c);
+        p.add(Box.createVerticalStrut(16));
+        return c;
     }
 }
