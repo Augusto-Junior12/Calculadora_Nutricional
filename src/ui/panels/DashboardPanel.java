@@ -1,92 +1,98 @@
 package ui.panels;
 
 import ui.theme.NutrixIcons;
-import ui.theme.NutrixTheme;
+import ui.theme.NutrixUI;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * Premium Dashboard — Nutrix v4.
- * Visualmente agradável, arredondado e direto.
+ * Dashboard v5 — Cards de acesso rápido estilo Linear/Vercel.
  */
 public class DashboardPanel extends JPanel {
 
     public DashboardPanel() {
-        setLayout(new BorderLayout(0, 40));
-        setBackground(Color.WHITE);
+        setLayout(new BorderLayout(0, 32));
+        setOpaque(false);
 
-        // Header
-        JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
-        
-        JLabel title = new JLabel("Bem-vindo ao Nutrix");
-        title.setFont(NutrixTheme.FONT_H1);
-        title.setForeground(NutrixTheme.TEXT_H1);
-        
-        JLabel subtitle = new JLabel("Sistema Operacional de Nutrição Clínica Hospitalar");
-        subtitle.setFont(NutrixTheme.FONT_BODY);
-        subtitle.setForeground(NutrixTheme.TEXT_MUTED);
-        
-        JPanel titleGrp = new JPanel(new GridLayout(2, 1, 0, 5));
-        titleGrp.setOpaque(false);
-        titleGrp.add(title);
-        titleGrp.add(subtitle);
-        header.add(titleGrp, BorderLayout.WEST);
-        
-        add(header, BorderLayout.NORTH);
+        // ── Stats Row ──
+        JPanel statsRow = new JPanel(new GridLayout(1, 4, 20, 0));
+        statsRow.setOpaque(false);
+        statsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
 
-        // Grid of Stats/Quick Actions
-        JPanel grid = new JPanel(new GridLayout(2, 2, 30, 30));
+        statsRow.add(statCard("Pacientes", "—", NutrixIcons.Icon.PATIENT, NutrixUI.ACCENT, NutrixUI.ACCENT_LIGHT));
+        statsRow.add(statCard("Fórmulas", "51", NutrixIcons.Icon.BOX, NutrixUI.SUCCESS, NutrixUI.SUCCESS_LIGHT));
+        statsRow.add(statCard("Alertas", "0", NutrixIcons.Icon.ALERT, NutrixUI.WARNING, NutrixUI.WARNING_LIGHT));
+        statsRow.add(statCard("Adequação", "—", NutrixIcons.Icon.TARGET, NutrixUI.DANGER, NutrixUI.DANGER_LIGHT));
+
+        // ── Module Grid ──
+        JPanel grid = new JPanel(new GridLayout(2, 3, 20, 20));
         grid.setOpaque(false);
 
-        grid.add(createPremiumCard("Identificação", "Admissão e triagem inicial de pacientes.", NutrixIcons.IconType.PATIENT, NutrixTheme.ACCENT));
-        grid.add(createPremiumCard("Cálculos", "Antropometria e estimativas corporais.", NutrixIcons.IconType.SCALE, NutrixTheme.SUCCESS));
-        grid.add(createPremiumCard("Prescrição", "Planejamento nutricional e dieta enteral.", NutrixIcons.IconType.PILL, NutrixTheme.DANGER));
-        grid.add(createPremiumCard("Monitoramento", "Controle de infusão e balanço hídrico.", NutrixIcons.IconType.WATER, Color.ORANGE));
+        grid.add(moduleCard("Admissão", "Cadastro e triagem de novos pacientes.", NutrixIcons.Icon.PATIENT, NutrixUI.ACCENT, NutrixUI.ACCENT_LIGHT));
+        grid.add(moduleCard("Antropometria", "Estimativas de peso e altura (Chumlea).", NutrixIcons.Icon.SCALE, NutrixUI.SUCCESS, NutrixUI.SUCCESS_LIGHT));
+        grid.add(moduleCard("Metas Nutricionais", "Cálculo de VCT e PTN alvo.", NutrixIcons.Icon.TARGET, new Color(234,179,8), new Color(254,252,232)));
+        grid.add(moduleCard("Prescrição TNE", "Geração de plano nutricional R04.", NutrixIcons.Icon.PILL, NutrixUI.DANGER, NutrixUI.DANGER_LIGHT));
+        grid.add(moduleCard("Hidratação", "Balanço hídrico e flushes.", NutrixIcons.Icon.WATER, new Color(6,182,212), new Color(224,247,250)));
+        grid.add(moduleCard("Monitor UTI", "Cálculos de Nora, BN e Propofol.", NutrixIcons.Icon.MONITOR, new Color(168,85,247), new Color(243,232,255)));
 
-        add(grid, BorderLayout.CENTER);
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        content.add(statsRow);
+        content.add(Box.createVerticalStrut(24));
+        content.add(grid);
+
+        add(content, BorderLayout.CENTER);
     }
 
-    private JPanel createPremiumCard(String title, String desc, NutrixIcons.IconType type, Color accent) {
-        JPanel card = NutrixTheme.createRoundedPanel(25, NutrixTheme.ACCENT_SOFT);
-        card.setLayout(new BorderLayout(20, 15));
-        card.setBorder(new EmptyBorder(30, 30, 30, 30));
+    private JPanel statCard(String label, String value, NutrixIcons.Icon icon, Color accent, Color accentLight) {
+        JPanel card = NutrixUI.card(20);
+        card.setLayout(new BorderLayout(12, 0));
 
-        // Icon Badge
-        JPanel iconBadge = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                NutrixTheme.aplicarAntiAliasing(g2);
-                g2.setColor(accent);
-                g2.fillOval(0, 0, getWidth(), getHeight());
-                NutrixIcons.drawIcon(g2, type, 24, Color.WHITE);
-                g2.dispose();
-            }
-        };
-        iconBadge.setPreferredSize(new Dimension(50, 50));
-        
-        JPanel top = new JPanel(new BorderLayout(15, 0));
-        top.setOpaque(false);
-        top.add(iconBadge, BorderLayout.WEST);
-        
+        JPanel badge = NutrixIcons.iconBadge(icon, 40, accentLight, accent);
+
+        JPanel info = new JPanel(new GridLayout(2, 1));
+        info.setOpaque(false);
+        JLabel v = new JLabel(value);
+        v.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        v.setForeground(NutrixUI.TEXT_PRIMARY);
+        JLabel l = new JLabel(label);
+        l.setFont(NutrixUI.SMALL);
+        l.setForeground(NutrixUI.TEXT_SECONDARY);
+        info.add(v);
+        info.add(l);
+
+        card.add(badge, BorderLayout.WEST);
+        card.add(info, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel moduleCard(String title, String desc, NutrixIcons.Icon icon, Color accent, Color accentLight) {
+        JPanel card = NutrixUI.card(24);
+        card.setLayout(new BorderLayout(0, 14));
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Icon badge top
+        JPanel badge = NutrixIcons.iconBadge(icon, 46, accentLight, accent);
+        JPanel badgeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        badgeRow.setOpaque(false);
+        badgeRow.add(badge);
+
         JLabel t = new JLabel(title);
-        t.setFont(NutrixTheme.FONT_H2);
-        t.setForeground(NutrixTheme.TEXT_H1);
-        top.add(t, BorderLayout.CENTER);
+        t.setFont(NutrixUI.BODY_BOLD);
+        t.setForeground(NutrixUI.TEXT_PRIMARY);
 
         JTextArea d = new JTextArea(desc);
-        d.setFont(NutrixTheme.FONT_BODY);
-        d.setForeground(NutrixTheme.TEXT_BODY);
-        d.setLineWrap(true);
-        d.setWrapStyleWord(true);
-        d.setOpaque(false);
-        d.setEditable(false);
+        d.setFont(NutrixUI.SMALL);
+        d.setForeground(NutrixUI.TEXT_SECONDARY);
+        d.setLineWrap(true); d.setWrapStyleWord(true);
+        d.setOpaque(false); d.setEditable(false); d.setFocusable(false);
 
-        card.add(top, BorderLayout.NORTH);
-        card.add(d, BorderLayout.CENTER);
-
+        card.add(badgeRow, BorderLayout.NORTH);
+        card.add(t, BorderLayout.CENTER);
+        card.add(d, BorderLayout.SOUTH);
         return card;
     }
 }

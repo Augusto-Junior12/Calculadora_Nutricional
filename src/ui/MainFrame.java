@@ -1,170 +1,126 @@
 package ui;
 
+import ui.components.NutrixSidebar;
 import ui.panels.*;
-import ui.theme.NutrixIcons;
-import ui.theme.NutrixTheme;
+import ui.theme.NutrixUI;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * Nutrix Hospital OS — v4 Premium Edition.
- * Design robusto, arredondado e estético.
+ * MainFrame v5 — Nutrix Hospital OS.
+ * Layout: Sidebar escura | Content canvas arredondado.
  */
 public class MainFrame extends JFrame {
 
     private final CardLayout cardLayout;
-    private final JPanel contentWrapper;
-    private final JPanel sidebar;
-    private int selectedIndex = 0;
+    private final JPanel contentArea;
+    private final JLabel titleBar;
 
-    private static final String[] APPS = {
-        "DASHBOARD", "PACIENTES", "ANTROPOMETRIA", "METAS", 
-        "PRESCRIÇÃO", "HIDRATAÇÃO", "CLÍNICO", "INGESTÃO", "QUALIDADE", "FÓRMULAS"
-    };
-
-    private static final String[] KEYS = {
+    private static final String[] PANEL_KEYS = {
         "dashboard", "cadastro", "antropometria", "necessidades",
-        "prescricao", "hidratacao", "calculos", "ingestao", "infundido", "formulas"
+        "prescricao", "hidratacao", "calculos", "ingestao",
+        "infundido", "formulas"
     };
 
-    private static final NutrixIcons.IconType[] ICONS = {
-        NutrixIcons.IconType.DASHBOARD, NutrixIcons.IconType.PATIENT, 
-        NutrixIcons.IconType.SCALE, NutrixIcons.IconType.TARGET, 
-        NutrixIcons.IconType.PILL, NutrixIcons.IconType.WATER, 
-        NutrixIcons.IconType.MONITOR, NutrixIcons.IconType.FOOD, 
-        NutrixIcons.IconType.CHART, NutrixIcons.IconType.SEARCH
+    private static final String[] PANEL_TITLES = {
+        "Dashboard", "Admissão de Pacientes", "Avaliação Antropométrica", "Metas Nutricionais",
+        "Prescrição Enteral", "Hidratação", "Monitoramento UTI", "Ingestão Oral",
+        "Controle de Qualidade", "Catálogo de Fórmulas"
     };
 
     public MainFrame() {
         super("Nutrix Hospital OS");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1300, 850);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(1300, 820);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(NutrixTheme.BG_PAGE);
+        setMinimumSize(new Dimension(900, 600));
 
-        setLayout(new BorderLayout());
-
-        // --- Elegant Sidebar ---
-        sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(NutrixTheme.BG_SIDEBAR);
-        sidebar.setPreferredSize(new Dimension(280, 0));
-        sidebar.setBorder(new EmptyBorder(40, 20, 40, 20));
-
-        // Logo
-        JLabel logo = new JLabel("NUTRIX");
-        logo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        logo.setForeground(Color.WHITE);
-        logo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        sidebar.add(logo);
-        sidebar.add(Box.createVerticalStrut(40));
-
-        // Nav Items
-        for (int i = 0; i < APPS.length; i++) {
-            sidebar.add(createSidebarItem(i));
-            sidebar.add(Box.createVerticalStrut(10));
-        }
-
-        add(sidebar, BorderLayout.WEST);
-
-        // --- Content Area (Rounded Canvas) ---
-        JPanel canvas = new JPanel(new BorderLayout());
-        canvas.setOpaque(false);
-        canvas.setBorder(new EmptyBorder(25, 25, 25, 25));
-
-        cardLayout = new CardLayout();
-        contentWrapper = NutrixTheme.createRoundedPanel(30, Color.WHITE);
-        contentWrapper.setLayout(cardLayout);
-        contentWrapper.setBorder(new EmptyBorder(40, 50, 40, 50));
-
-        // Registrar painéis
-        contentWrapper.add(new DashboardPanel(), KEYS[0]);
-        contentWrapper.add(new PacienteCadastroPanel(), KEYS[1]);
-        contentWrapper.add(new AntropometriaPanel(), KEYS[2]);
-        contentWrapper.add(new NecessidadesPanel(), KEYS[3]);
-        contentWrapper.add(new PrescricaoPanel(), KEYS[4]);
-        contentWrapper.add(new HidratacaoPanel(), KEYS[5]);
-        contentWrapper.add(new CalculosClinicosPanel(), KEYS[6]);
-        contentWrapper.add(new IngestaoOralPanel(), KEYS[7]);
-        contentWrapper.add(new PrescritoInfundidoPanel(), KEYS[8]);
-        contentWrapper.add(new ConsultaFormulasPanel(), KEYS[9]);
-
-        canvas.add(contentWrapper, BorderLayout.CENTER);
-        add(canvas, BorderLayout.CENTER);
-        
-        updateSidebarSelection();
-    }
-
-    private JPanel createSidebarItem(int index) {
-        JPanel item = new JPanel(new BorderLayout(15, 0)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                if (index == selectedIndex) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    NutrixTheme.aplicarAntiAliasing(g2);
-                    g2.setColor(new Color(255, 255, 255, 30));
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                    g2.dispose();
-                }
-                super.paintChildren(g);
+        // Root panel com fundo escuro (cobre a janela inteira)
+        JPanel root = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(NutrixUI.SIDEBAR_BG);
+                g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        item.setOpaque(false);
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        item.setBorder(new EmptyBorder(0, 20, 0, 20));
+        setContentPane(root);
 
-        // Icon Badge (Vector)
-        JPanel iconBadge = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                NutrixIcons.drawIcon(g2, ICONS[index], 18, (index == selectedIndex) ? Color.WHITE : NutrixTheme.TEXT_MUTED);
+        // ── Pre-init required fields ──
+        cardLayout = new CardLayout();
+        contentArea = new JPanel(cardLayout);
+        contentArea.setOpaque(false);
+
+        titleBar = new JLabel("Dashboard");
+        titleBar.setFont(NutrixUI.DISPLAY);
+        titleBar.setForeground(NutrixUI.TEXT_PRIMARY);
+
+        // ── Sidebar ──
+        NutrixSidebar sidebar = new NutrixSidebar(index -> {
+            cardLayout.show(contentArea, PANEL_KEYS[index]);
+            titleBar.setText(PANEL_TITLES[index]);
+        });
+        root.add(sidebar, BorderLayout.WEST);
+
+        // ── Right Side (Content "canvas" arredondado) ──
+        JPanel rightWrapper = new JPanel(new BorderLayout());
+        rightWrapper.setOpaque(false);
+        rightWrapper.setBorder(new EmptyBorder(18, 0, 18, 18));
+
+        // Canvas com cantos arredondos e fundo BG_PAGE
+        JPanel canvas = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create(); NutrixUI.aa(g2);
+                g2.setColor(NutrixUI.BG_PAGE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 24, 24);
                 g2.dispose();
             }
         };
-        iconBadge.setOpaque(false);
-        iconBadge.setPreferredSize(new Dimension(20, 20));
+        canvas.setOpaque(false);
+        canvas.setLayout(new BorderLayout());
 
-        JLabel label = new JLabel(APPS[index]);
-        label.setFont(NutrixTheme.FONT_SMALL);
-        label.setForeground((index == selectedIndex) ? Color.WHITE : NutrixTheme.TEXT_MUTED);
+        // Top bar dentro do canvas
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setOpaque(false);
+        topBar.setBorder(new EmptyBorder(28, 36, 16, 36));
 
-        item.add(iconBadge, BorderLayout.WEST);
-        item.add(label, BorderLayout.CENTER);
+        topBar.add(titleBar, BorderLayout.WEST);
 
-        item.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                selectedIndex = index;
-                cardLayout.show(contentWrapper, KEYS[index]);
-                updateSidebarSelection();
-            }
-        });
+        // Status pill no canto superior direito
+        JPanel statusPill = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        statusPill.setOpaque(false);
+        JLabel statusLabel = NutrixUI.badge("● Sistema Ativo", NutrixUI.SUCCESS_LIGHT, NutrixUI.SUCCESS);
+        statusPill.add(statusLabel);
+        topBar.add(statusPill, BorderLayout.EAST);
 
-        return item;
-    }
+        canvas.add(topBar, BorderLayout.NORTH);
 
-    private void updateSidebarSelection() {
-        for (int i = 0; i < sidebar.getComponentCount(); i++) {
-            Component c = sidebar.getComponent(i);
-            if (c instanceof JPanel) {
-                c.repaint();
-                for (Component sub : ((JPanel)c).getComponents()) {
-                    if (sub instanceof JLabel) {
-                        int index = (i - 2) / 2; // Adjust for logo and struts
-                        // Note: Logic for index might be fragile, but works for this structure
-                    }
-                }
-            }
-        }
-        sidebar.repaint();
+        JScrollPane scrollArea = new JScrollPane(contentArea);
+        scrollArea.setOpaque(false);
+        scrollArea.getViewport().setOpaque(false);
+        scrollArea.setBorder(new EmptyBorder(0, 36, 28, 36));
+        scrollArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        canvas.add(scrollArea, BorderLayout.CENTER);
+        rightWrapper.add(canvas, BorderLayout.CENTER);
+        root.add(rightWrapper, BorderLayout.CENTER);
+
+        // ── Register Panels ──
+        contentArea.add(new DashboardPanel(), PANEL_KEYS[0]);
+        contentArea.add(new PacienteCadastroPanel(), PANEL_KEYS[1]);
+        contentArea.add(new AntropometriaPanel(), PANEL_KEYS[2]);
+        contentArea.add(new NecessidadesPanel(), PANEL_KEYS[3]);
+        contentArea.add(new PrescricaoPanel(), PANEL_KEYS[4]);
+        contentArea.add(new HidratacaoPanel(), PANEL_KEYS[5]);
+        contentArea.add(new CalculosClinicosPanel(), PANEL_KEYS[6]);
+        contentArea.add(new IngestaoOralPanel(), PANEL_KEYS[7]);
+        contentArea.add(new PrescritoInfundidoPanel(), PANEL_KEYS[8]);
+        contentArea.add(new ConsultaFormulasPanel(), PANEL_KEYS[9]);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new MainFrame().setVisible(true);
-        });
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
     }
 }

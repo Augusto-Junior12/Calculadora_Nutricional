@@ -1,69 +1,42 @@
 package ui.panels;
 
 import service.HidratacaoService;
-import ui.theme.NutrixTheme;
+import ui.components.ClinicalFormPanel;
+import ui.theme.NutrixIcons;
+import ui.theme.NutrixUI;
 import util.Formatador;
+
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class HidratacaoPanel extends JPanel {
+public class HidratacaoPanel extends ClinicalFormPanel {
+
     private final HidratacaoService service = new HidratacaoService();
-    private JTextField fPeso, fVol;
-    private JTextArea resArea;
+    private final JTextField fPeso, fVol;
+    private final JComboBox<String> cDens;
 
     public HidratacaoPanel() {
-        setLayout(new BorderLayout(40, 0));
-        setBackground(Color.WHITE);
-
-        JPanel left = new JPanel();
-        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-        left.setOpaque(false);
-        left.setPreferredSize(new Dimension(380, 0));
-
-        JLabel title = new JLabel("Hidratação Extra");
-        title.setFont(NutrixTheme.FONT_H2);
-        title.setBorder(new EmptyBorder(0, 0, 30, 0));
-        left.add(title);
-
-        fPeso = addField(left, "Peso do Paciente (kg)");
-        fVol = addField(left, "Volume de Dieta (ml)");
-
-        left.add(Box.createVerticalStrut(25));
-        JButton btn = NutrixTheme.createButton("CALCULAR FLUSHES", true);
-        btn.addActionListener(e -> {
-            try {
-                double p = Double.parseDouble(fPeso.getText().replace(",", "."));
-                double v = Double.parseDouble(fVol.getText().replace(",", "."));
-                double n = service.calcularNecessidadeIdeal(p);
-                double a = service.calcularAguaViaTNE(v, 1.2);
-                resArea.setText("💧 PLANEJAMENTO HÍDRICO\n\n" +
-                    "Necessidade Total: " + Formatador.ml(n) + "\n" +
-                    "Água via Dieta:    " + Formatador.ml(a) + "\n" +
-                    "Água Extra Sonda:  " + Formatador.ml(Math.max(0, n - a)));
-            } catch (Exception ex) { resArea.setText("Erro."); }
-        });
-        left.add(btn);
-
-        add(left, BorderLayout.WEST);
-
-        JPanel right = NutrixTheme.createRoundedPanel(25, NutrixTheme.ACCENT_SOFT);
-        right.setLayout(new BorderLayout());
-        right.setBorder(new EmptyBorder(35, 35, 35, 35));
-
-        resArea = new JTextArea();
-        resArea.setFont(new Font("Consolas", Font.PLAIN, 15));
-        resArea.setEditable(false);
-        resArea.setOpaque(false);
-        right.add(new JScrollPane(resArea), BorderLayout.CENTER);
-
-        add(right, BorderLayout.CENTER);
+        super("Hidratação", NutrixIcons.Icon.WATER, new Color(6, 182, 212), new Color(224, 247, 250));
+        fPeso = addField("Peso (kg)");
+        fVol  = addField("Volume Dieta (ml)");
+        cDens = addCombo("Densidade Calórica", new String[]{"1.0 kcal/ml", "1.2 kcal/ml", "1.5 kcal/ml"});
+        addPrimaryButton("CALCULAR FLUSHES").addActionListener(e -> calcular());
     }
 
-    private JTextField addField(JPanel p, String label) {
-        JLabel l = new JLabel(label); l.setFont(NutrixTheme.FONT_SMALL); l.setForeground(NutrixTheme.TEXT_MUTED);
-        l.setBorder(new EmptyBorder(0, 5, 5, 0)); p.add(l);
-        JTextField f = NutrixTheme.createTextField(); f.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42)); p.add(f);
-        p.add(Box.createVerticalStrut(15)); return f;
+    private void calcular() {
+        try {
+            double p = parseField(fPeso), v = parseField(fVol);
+            double[] densidades = {1.0, 1.2, 1.5};
+            double d = densidades[cDens.getSelectedIndex()];
+            double agua = service.calcularAguaViaTNE(v, d);
+            double nec  = service.calcularNecessidadeIdeal(p);
+            double extra = Math.max(0, nec - agua);
+
+            showResults(new String[][]{
+                {"Necessidade Hídrica Ideal", Formatador.ml(nec)},
+                {"Água via Dieta Enteral",    Formatador.ml(agua)},
+                {"Água Extra pela Sonda",     Formatador.ml(extra)},
+            }, new Color(6, 182, 212));
+        } catch (Exception ex) { showError("Verifique os dados."); }
     }
 }
