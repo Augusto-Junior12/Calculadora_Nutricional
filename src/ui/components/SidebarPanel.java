@@ -1,5 +1,6 @@
 package ui.components;
 
+import ui.theme.NutrixIcons;
 import ui.theme.NutrixTheme;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -57,13 +58,20 @@ public class SidebarPanel extends JPanel {
         menuContainer.setOpaque(false);
         menuContainer.setBorder(new EmptyBorder(0, 15, 0, 15));
 
-        String[] icons = {"▤", "👤", "📏", "🎯", "💊", "💧", "⚙", "🍽", "⚖", "🔍", "📦"};
+        NutrixIcons.IconType[] iconTypes = {
+            NutrixIcons.IconType.DASHBOARD, NutrixIcons.IconType.PATIENT, 
+            NutrixIcons.IconType.SCALE, NutrixIcons.IconType.TARGET, 
+            NutrixIcons.IconType.PILL, NutrixIcons.IconType.WATER, 
+            NutrixIcons.IconType.MONITOR, NutrixIcons.IconType.FOOD, 
+            NutrixIcons.IconType.CHART, NutrixIcons.IconType.SEARCH, 
+            NutrixIcons.IconType.BOX
+        };
 
         for (int i = 0; i < menuLabels.length; i++) {
-            JPanel item = createMenuItem(i < icons.length ? icons[i] : "•", menuLabels[i], i);
+            JPanel item = createMenuItem(iconTypes[i % iconTypes.length], menuLabels[i], i);
             menuItems.add(item);
             menuContainer.add(item);
-            menuContainer.add(Box.createVerticalStrut(6));
+            menuContainer.add(Box.createVerticalStrut(8));
         }
 
         JScrollPane scroll = new JScrollPane(menuContainer);
@@ -78,11 +86,11 @@ public class SidebarPanel extends JPanel {
         footer.setOpaque(false);
         footer.setBorder(new EmptyBorder(20, 25, 25, 25));
         
-        JLabel userLabel = new JLabel("Nutricionista Ativo");
+        JLabel userLabel = new JLabel("Nutricionista Logado");
         userLabel.setFont(NutrixTheme.FONT_SMALL);
         userLabel.setForeground(NutrixTheme.TEXT_MUTED);
         
-        JLabel logout = new JLabel("Sair do Sistema");
+        JLabel logout = new JLabel("Encerrar Sessão");
         logout.setFont(NutrixTheme.FONT_BODY_BOLD);
         logout.setForeground(Color.WHITE);
         logout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -94,38 +102,40 @@ public class SidebarPanel extends JPanel {
         updateSelection(0);
     }
 
-    private JPanel createMenuItem(String icon, String label, int index) {
+    private JPanel createMenuItem(NutrixIcons.IconType type, String label, int index) {
         JPanel item = new JPanel(new BorderLayout(15, 0)) {
             @Override
             protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                NutrixTheme.aplicarAntiAliasing(g2);
                 if (index == selectedIndex) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    NutrixTheme.aplicarAntiAliasing(g2);
-                    g2.setColor(new Color(255, 255, 255, 20));
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    g2.setColor(new Color(56, 189, 248, 30));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                     
-                    // Indicador vertical
                     g2.setColor(NutrixTheme.ACCENT);
-                    g2.fillRoundRect(0, 8, 4, getHeight() - 16, 2, 2);
-                    g2.dispose();
+                    g2.fillRoundRect(0, 10, 4, getHeight() - 20, 2, 2);
                 }
+                
+                // Draw Icon
+                int iconSize = 20;
+                int x = 15;
+                int y = (getHeight() - iconSize) / 2;
+                g2.translate(x, y);
+                NutrixIcons.drawIcon(g2, type, iconSize, index == selectedIndex ? NutrixTheme.ACCENT : NutrixTheme.TEXT_MUTED);
+                g2.translate(-x, -y);
+                
+                g2.dispose();
                 super.paintChildren(g);
             }
         };
         item.setOpaque(false);
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
-        item.setBorder(new EmptyBorder(0, 20, 0, 15));
+        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        item.setBorder(new EmptyBorder(0, 45, 0, 15)); // Offset text for icon
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        iconLabel.setForeground(NutrixTheme.TEXT_MUTED);
 
         JLabel textLabel = new JLabel(label);
         textLabel.setFont(NutrixTheme.FONT_BODY);
         textLabel.setForeground(NutrixTheme.TEXT_ON_DARK);
-
-        item.add(iconLabel, BorderLayout.WEST);
         item.add(textLabel, BorderLayout.CENTER);
 
         item.addMouseListener(new MouseAdapter() {
@@ -138,15 +148,9 @@ public class SidebarPanel extends JPanel {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (index != selectedIndex) {
-                    item.setBackground(new Color(255, 255, 255, 10));
-                    item.setOpaque(true);
+                    item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                     item.repaint();
                 }
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                item.setOpaque(false);
-                item.repaint();
             }
         });
 
@@ -157,11 +161,8 @@ public class SidebarPanel extends JPanel {
         for (int i = 0; i < menuItems.size(); i++) {
             JPanel item = menuItems.get(i);
             boolean selected = (i == index);
-            JLabel iconLabel = (JLabel) item.getComponent(0);
-            JLabel textLabel = (JLabel) item.getComponent(1);
-            
-            iconLabel.setForeground(selected ? NutrixTheme.ACCENT : NutrixTheme.TEXT_MUTED);
-            textLabel.setForeground(selected ? Color.WHITE : NutrixTheme.TEXT_ON_DARK);
+            JLabel textLabel = (JLabel) item.getComponent(0);
+            textLabel.setForeground(selected ? Color.WHITE : NutrixTheme.TEXT_MUTED);
             textLabel.setFont(selected ? NutrixTheme.FONT_BODY_BOLD : NutrixTheme.FONT_BODY);
             item.repaint();
         }

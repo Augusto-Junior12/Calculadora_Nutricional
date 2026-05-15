@@ -45,22 +45,45 @@ public class MainFrame extends JFrame {
         rightSide.setOpaque(false);
 
         // Global Header (Top Bar)
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0, 65));
-        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, NutrixTheme.BORDER));
-        header.setBorder(new CompoundBorder(header.getBorder(), new EmptyBorder(0, 45, 0, 45)));
+        JPanel header = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                NutrixTheme.aplicarAntiAliasing(g2);
+                g2.setColor(Color.WHITE);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.setColor(NutrixTheme.BORDER);
+                g2.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
+                g2.dispose();
+            }
+        };
+        header.setPreferredSize(new Dimension(0, 75));
+        header.setBorder(new EmptyBorder(0, 60, 0, 60));
 
         activePanelLabel = new JLabel("DASHBOARD");
-        activePanelLabel.setFont(NutrixTheme.FONT_H3);
-        activePanelLabel.setForeground(NutrixTheme.TEXT_H1);
+        activePanelLabel.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 18));
+        activePanelLabel.setForeground(NutrixTheme.PRIMARY);
         header.add(activePanelLabel, BorderLayout.WEST);
 
-        // Patient Status Placeholder
-        JLabel statusInfo = new JLabel("Sessão: Dr. Nutricionista | UTI Central");
-        statusInfo.setFont(NutrixTheme.FONT_SMALL);
-        statusInfo.setForeground(NutrixTheme.TEXT_MUTED);
-        header.add(statusInfo, BorderLayout.EAST);
+        // Session Info Badge
+        JPanel sessionBadge = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        sessionBadge.setOpaque(false);
+        
+        JLabel user = new JLabel("Dr. Augusto Junior");
+        user.setFont(NutrixTheme.FONT_BODY_BOLD);
+        user.setForeground(NutrixTheme.TEXT_H1);
+        
+        JLabel role = new JLabel("Nutricionista Chefe");
+        role.setFont(NutrixTheme.FONT_SMALL);
+        role.setForeground(NutrixTheme.TEXT_MUTED);
+        
+        JPanel textGrp = new JPanel(new GridLayout(2, 1, 0, -2));
+        textGrp.setOpaque(false);
+        textGrp.add(user);
+        textGrp.add(role);
+        
+        sessionBadge.add(textGrp);
+        header.add(sessionBadge, BorderLayout.EAST);
 
         // Content Area
         cardLayout = new CardLayout();

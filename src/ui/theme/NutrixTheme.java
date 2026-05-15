@@ -9,124 +9,135 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 /**
- * Nutrix Hospital OS — Novo Design System.
- * Estética moderna, "Dark-ish" Sidebar e "Clean Modern" Content.
- * Focado em robustez, legibilidade e visual premium.
+ * Nutrix Hospital OS — Senior Design System.
+ * Glassmorphism, Smooth Shadows, Custom Layouts.
  */
 public final class NutrixTheme {
 
     private NutrixTheme() {}
 
-    // ==================== PALETA DE CORES (MODERNA) ====================
-    // Primárias (Deep Teal / Modern Blue)
-    public static final Color ACCENT = new Color(0, 184, 169);        // Teal vibrante para ações
-    public static final Color PRIMARY = new Color(45, 55, 72);        // Slate Blue escuro para texto/branding
-    public static final Color SECONDARY = new Color(74, 85, 104);     // Slate médio
+    // ==================== PALETA DE CORES PREMIUM ====================
+    public static final Color ACCENT = new Color(56, 189, 248);       // Sky Blue 400
+    public static final Color ACCENT_DARK = new Color(14, 165, 233);   // Sky Blue 600
+    public static final Color PRIMARY = new Color(15, 23, 42);        // Slate 900
+    public static final Color BG_MAIN = new Color(241, 245, 249);     // Slate 100
+    public static final Color BG_SIDEBAR = new Color(2, 6, 23);       // Darker Navy
+    public static final Color BG_INPUT = new Color(241, 245, 249);    // Slate 100
+    public static final Color GLASS_BG = new Color(255, 255, 255, 180);
     
-    // Backgrounds
-    public static final Color BG_MAIN = new Color(248, 250, 252);     // Quase branco (Sky Blue Tint)
-    public static final Color BG_SIDEBAR = new Color(15, 23, 42);     // Navy escuro (Modern OS style)
-    public static final Color BG_CARD = Color.WHITE;
-    public static final Color BG_INPUT = new Color(241, 245, 249);
+    public static final Color SUCCESS = new Color(16, 185, 129);      // Emerald 500
+    public static final Color WARNING = new Color(245, 158, 11);      // Amber 500
+    public static final Color DANGER = new Color(244, 63, 94);        // Rose 500
     
-    // Status
-    public static final Color SUCCESS = new Color(34, 197, 94);       // Emerald Green
-    public static final Color WARNING = new Color(245, 158, 11);      // Amber
-    public static final Color DANGER = new Color(239, 68, 68);        // Rose Red
-    public static final Color INFO = new Color(59, 130, 246);         // Bright Blue
-    
-    // Textos
     public static final Color TEXT_H1 = new Color(15, 23, 42);
-    public static final Color TEXT_BODY = new Color(51, 65, 85);
-    public static final Color TEXT_MUTED = new Color(100, 116, 139);
-    public static final Color TEXT_ON_DARK = new Color(241, 245, 249);
+    public static final Color TEXT_BODY = new Color(71, 85, 105);     // Slate 600
+    public static final Color TEXT_MUTED = new Color(148, 163, 184);  // Slate 400
+    public static final Color TEXT_ON_DARK = new Color(248, 250, 252);
 
-    // Bordas
-    public static final Color BORDER = new Color(226, 232, 240);
-    public static final Color BORDER_FOCUS = ACCENT;
+    public static final Color BORDER = new Color(226, 232, 240);      // Slate 200
 
     // ==================== FONTES ====================
-    public static final Font FONT_H1 = new Font("Segoe UI", Font.BOLD, 26);
-    public static final Font FONT_H2 = new Font("Segoe UI", Font.BOLD, 18);
-    public static final Font FONT_H3 = new Font("Segoe UI", Font.BOLD, 14);
+    public static final Font FONT_H1 = new Font("Segoe UI Semibold", Font.PLAIN, 28);
+    public static final Font FONT_H2 = new Font("Segoe UI Semibold", Font.PLAIN, 20);
+    public static final Font FONT_H3 = new Font("Segoe UI Semibold", Font.PLAIN, 14);
     public static final Font FONT_BODY = new Font("Segoe UI", Font.PLAIN, 13);
-    public static final Font FONT_BODY_BOLD = new Font("Segoe UI", Font.BOLD, 13);
+    public static final Font FONT_BODY_BOLD = new Font("Segoe UI Semibold", Font.PLAIN, 13);
     public static final Font FONT_SMALL = new Font("Segoe UI", Font.PLAIN, 11);
 
-    // ==================== COMPONENTES PREMIUM ====================
+    // ==================== UTILITIES ====================
+    public static void aplicarAntiAliasing(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    }
 
-    /** Botão com estilo "Modern OS" */
+    // ==================== COMPONENTES SENIOR ====================
+
     public static JButton createButton(String text, boolean primary) {
         JButton btn = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 aplicarAntiAliasing(g2);
+                
+                // Shadow / Glow effect
+                if (primary && getModel().isRollover()) {
+                    g2.setColor(new Color(ACCENT.getRed(), ACCENT.getGreen(), ACCENT.getBlue(), 60));
+                    g2.fillRoundRect(2, 4, getWidth()-4, getHeight()-4, 12, 12);
+                }
+
                 if (getModel().isPressed()) {
-                    g2.setColor(primary ? ACCENT.darker() : BORDER);
+                    g2.setColor(primary ? ACCENT_DARK : BORDER.darker());
                 } else if (getModel().isRollover()) {
-                    g2.setColor(primary ? ACCENT.brighter() : BG_INPUT);
+                    g2.setColor(primary ? ACCENT : BORDER);
                 } else {
                     g2.setColor(primary ? ACCENT : Color.WHITE);
                 }
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                
                 if (!primary) {
                     g2.setColor(BORDER);
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                    g2.setStroke(new BasicStroke(1.2f));
+                    g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 12, 12);
                 }
                 g2.dispose();
                 super.paintChildren(g);
             }
         };
         btn.setFont(FONT_BODY_BOLD);
-        btn.setForeground(primary ? Color.WHITE : TEXT_BODY);
+        btn.setForeground(primary ? Color.WHITE : TEXT_H1);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(160, 40));
+        btn.setPreferredSize(new Dimension(180, 45));
         return btn;
     }
 
-    /** Card com sombra suave e bordas arredondadas */
     public static JPanel createCard() {
         JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 aplicarAntiAliasing(g2);
-                g2.setColor(BG_CARD);
-                g2.fillRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 15, 15);
-                g2.setColor(new Color(0, 0, 0, 15)); // Sombra suave
-                g2.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 15, 15);
+                
+                // Subtle gradient background
+                GradientPaint gp = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), new Color(252, 253, 255));
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                
+                // Soft Border
+                g2.setColor(new Color(0, 0, 0, 10));
+                g2.setStroke(new BasicStroke(1.0f));
+                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                
                 g2.dispose();
             }
         };
         card.setOpaque(false);
-        card.setBorder(new EmptyBorder(25, 25, 25, 25));
+        card.setBorder(new EmptyBorder(30, 30, 30, 30));
         return card;
     }
 
-    /** Campo de texto moderno com background sutil */
     public static JTextField createTextField() {
         JTextField f = new JTextField();
         f.setFont(FONT_BODY);
-        f.setBackground(BG_INPUT);
-        f.setForeground(TEXT_BODY);
+        f.setBackground(Color.WHITE);
+        f.setForeground(TEXT_H1);
+        f.setCaretColor(ACCENT);
         f.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(8, 12, 8, 12)
+            new EmptyBorder(10, 15, 10, 15)
         ));
-        f.setCaretColor(ACCENT);
         return f;
     }
 
-    public static void aplicarAntiAliasing(Graphics g) {
-        if (g instanceof Graphics2D) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        }
+    public static JLabel createLabel(String text, Font font, Color color) {
+        JLabel l = new JLabel(text);
+        l.setFont(font);
+        l.setForeground(color);
+        return l;
     }
 }
