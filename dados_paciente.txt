@@ -1,0 +1,8 @@
+Nome: Augustinho
+Sexo: m
+Idade: 15
+Peso: 48.6 kg
+Altura: 1.9 m
+Circunferência do Braço: 32.0 cm
+Circunferência da Panturrilha: 34.2 cm
+

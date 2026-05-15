@@ -1,0 +1,18 @@
+Nome: Augusto
+Sexo: m
+Idade: 19
+Peso: 73.4 kg
+Altura: 1.78 m
+Circunferência do Braço: 23.4 cm
+Circunferência da Panturrilha: 23.5 cm
+
+Paciente: Augusto
+IMC: 23,17
+Paciente: Augusto
+GEB: 1756.5 Kcal/dia
+Paciente: Augusto
+Necessidade Proteica: 132,12 g/dia
+Paciente: Augusto
+Necessidade Hídrica: 2569,00 ml/dia
+Paciente: Augusto
+Peso Ideal: 69,70 Kg
