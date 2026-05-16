@@ -53,6 +53,10 @@ public class ConsultaFormulasPanel extends JPanel {
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
 
-        add(scroll, BorderLayout.CENTER);
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setBorder(new EmptyBorder(0, 10, 0, 10));
+        wrapper.add(scroll, BorderLayout.CENTER);
+        add(wrapper, BorderLayout.CENTER);
     }
 }

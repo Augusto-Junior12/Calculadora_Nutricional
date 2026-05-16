@@ -21,7 +21,6 @@ public abstract class ClinicalFormPanel extends JPanel {
     protected final JPanel resultBody;
 
     protected ClinicalFormPanel(String formTitle, NutrixIcons.Icon icon, Color accent, Color accentLight) {
-        setLayout(new BorderLayout(24, 0));
         setOpaque(false);
 
         // ── Form Card ──
@@ -74,8 +73,28 @@ public abstract class ClinicalFormPanel extends JPanel {
         resultBody.setOpaque(false);
         resultCard.add(resultBody, BorderLayout.CENTER);
 
-        add(formCard, BorderLayout.WEST);
-        add(resultCard, BorderLayout.CENTER);
+        // ── Centered Layout Wrapper ──
+        setLayout(new GridBagLayout());
+        
+        JPanel contentRow = new JPanel(new GridBagLayout());
+        contentRow.setOpaque(false);
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(0, 14, 0, 14);
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1.0;
+
+        c.gridx = 0; c.weightx = 0.42;
+        contentRow.add(formCard, c);
+
+        c.gridx = 1; c.weightx = 0.58;
+        contentRow.add(resultCard, c);
+
+        GridBagConstraints rootGbc = new GridBagConstraints();
+        rootGbc.weightx = 1.0; rootGbc.weighty = 1.0;
+        rootGbc.anchor = GridBagConstraints.CENTER;
+        rootGbc.insets = new Insets(0, 0, 0, 0);
+        
+        add(contentRow, rootGbc);
     }
 
     /** Adiciona um campo de texto ao formCard */

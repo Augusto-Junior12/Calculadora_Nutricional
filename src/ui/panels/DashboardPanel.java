@@ -11,8 +11,10 @@ import java.awt.*;
  * Dashboard v5 — Cards de acesso rápido estilo Linear/Vercel.
  */
 public class DashboardPanel extends JPanel {
+    private final java.util.function.Consumer<Integer> nav;
 
-    public DashboardPanel() {
+    public DashboardPanel(java.util.function.Consumer<Integer> nav) {
+        this.nav = nav;
         setLayout(new BorderLayout(0, 32));
         setOpaque(false);
 
@@ -30,12 +32,12 @@ public class DashboardPanel extends JPanel {
         JPanel grid = new JPanel(new GridLayout(2, 3, 20, 20));
         grid.setOpaque(false);
 
-        grid.add(moduleCard("Admissão", "Cadastro e triagem de novos pacientes.", NutrixIcons.Icon.PATIENT, NutrixUI.ACCENT, NutrixUI.ACCENT_LIGHT));
-        grid.add(moduleCard("Antropometria", "Estimativas de peso e altura (Chumlea).", NutrixIcons.Icon.SCALE, NutrixUI.SUCCESS, NutrixUI.SUCCESS_LIGHT));
-        grid.add(moduleCard("Metas Nutricionais", "Cálculo de VCT e PTN alvo.", NutrixIcons.Icon.TARGET, new Color(234,179,8), new Color(254,252,232)));
-        grid.add(moduleCard("Prescrição TNE", "Geração de plano nutricional R04.", NutrixIcons.Icon.PILL, NutrixUI.DANGER, NutrixUI.DANGER_LIGHT));
-        grid.add(moduleCard("Hidratação", "Balanço hídrico e flushes.", NutrixIcons.Icon.WATER, new Color(6,182,212), new Color(224,247,250)));
-        grid.add(moduleCard("Monitor UTI", "Cálculos de Nora, BN e Propofol.", NutrixIcons.Icon.MONITOR, new Color(168,85,247), new Color(243,232,255)));
+        grid.add(moduleCard("Admissão", "Cadastro e triagem de novos pacientes.", NutrixIcons.Icon.PATIENT, NutrixUI.ACCENT, NutrixUI.ACCENT_LIGHT, 1));
+        grid.add(moduleCard("Antropometria", "Estimativas de peso e altura (Chumlea).", NutrixIcons.Icon.SCALE, NutrixUI.SUCCESS, NutrixUI.SUCCESS_LIGHT, 2));
+        grid.add(moduleCard("Metas Nutricionais", "Cálculo de VCT e PTN alvo.", NutrixIcons.Icon.TARGET, new Color(234,179,8), new Color(254,252,232), 3));
+        grid.add(moduleCard("Prescrição TNE", "Geração de plano nutricional R04.", NutrixIcons.Icon.PILL, NutrixUI.DANGER, NutrixUI.DANGER_LIGHT, 4));
+        grid.add(moduleCard("Hidratação", "Balanço hídrico e flushes.", NutrixIcons.Icon.WATER, new Color(6,182,212), new Color(224,247,250), 5));
+        grid.add(moduleCard("Monitor UTI", "Cálculos de Nora, BN e Propofol.", NutrixIcons.Icon.MONITOR, new Color(168,85,247), new Color(243,232,255), 6));
 
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -69,7 +71,7 @@ public class DashboardPanel extends JPanel {
         return card;
     }
 
-    private JPanel moduleCard(String title, String desc, NutrixIcons.Icon icon, Color accent, Color accentLight) {
+    private JPanel moduleCard(String title, String desc, NutrixIcons.Icon icon, Color accent, Color accentLight, int targetIndex) {
         JPanel card = NutrixUI.card(24);
         card.setLayout(new BorderLayout(0, 14));
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -93,6 +95,13 @@ public class DashboardPanel extends JPanel {
         card.add(badgeRow, BorderLayout.NORTH);
         card.add(t, BorderLayout.CENTER);
         card.add(d, BorderLayout.SOUTH);
+
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (nav != null) nav.accept(targetIndex);
+            }
+        });
+
         return card;
     }
 }

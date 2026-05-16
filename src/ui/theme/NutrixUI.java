@@ -70,6 +70,11 @@ public final class NutrixUI {
         return new RoundInput(placeholder);
     }
 
+    /** Campo de senha arredondado */
+    public static JPasswordField passwordInput(String placeholder) {
+        return new RoundPassword(placeholder);
+    }
+
     /** ComboBox estilizado */
     public static JComboBox<String> combo(String[] items) {
         JComboBox<String> c = new JComboBox<>(items);
@@ -84,7 +89,7 @@ public final class NutrixUI {
 
     /** Botão primário Violet */
     public static JButton btnPrimary(String text) {
-        return new RoundButton(text, ACCENT, ACCENT_HOVER, Color.WHITE);
+        return new RoundButton(text.toUpperCase(), ACCENT, ACCENT_HOVER, Color.WHITE);
     }
 
     /** Botão outline */
@@ -180,14 +185,19 @@ public final class NutrixUI {
     /* ──────────── INNER COMPONENTS ──────────── */
 
     private static class RoundInput extends JTextField {
+        private final String placeholder;
         RoundInput(String placeholder) {
-            super();
+            super(20);
+            this.placeholder = placeholder;
             setFont(BODY);
             setOpaque(false);
-            setBorder(new EmptyBorder(12, 16, 12, 16));
-            setCaretColor(ACCENT);
-            setPreferredSize(new Dimension(0, 44));
-            putClientProperty("placeholder", placeholder);
+            setBorder(new EmptyBorder(10, 16, 10, 16));
+            setCaretColor(new Color(0,0,0,0));
+            setCaret(new javax.swing.text.DefaultCaret() {
+                @Override public void paint(Graphics g) {}
+                @Override public boolean isVisible() { return false; }
+            });
+            setPreferredSize(new Dimension(200, 44));
         }
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create(); aa(g2);
@@ -204,6 +214,56 @@ public final class NutrixUI {
                 g2.setStroke(new BasicStroke(1.2f));
             }
             g2.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 14, 14);
+            
+            // Placeholder
+            if (getText().isEmpty() && !focused && placeholder != null) {
+                g2.setColor(TEXT_MUTED);
+                g2.setFont(BODY);
+                FontMetrics fm = g2.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, 16, y);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    private static class RoundPassword extends JPasswordField {
+        private final String placeholder;
+        RoundPassword(String placeholder) {
+            super(20);
+            this.placeholder = placeholder;
+            setFont(BODY);
+            setOpaque(false);
+            setBorder(new EmptyBorder(10, 16, 10, 16));
+            setCaretColor(new Color(0,0,0,0));
+            setCaret(new javax.swing.text.DefaultCaret() {
+                @Override public void paint(Graphics g) {}
+                @Override public boolean isVisible() { return false; }
+            });
+            setPreferredSize(new Dimension(200, 44));
+        }
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create(); aa(g2);
+            boolean focused = hasFocus();
+            g2.setColor(focused ? new Color(237,233,254,80) : BG_CARD);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+            if (focused) {
+                g2.setColor(ACCENT);
+                g2.setStroke(new BasicStroke(2f));
+            } else {
+                g2.setColor(INPUT_BORDER);
+                g2.setStroke(new BasicStroke(1.2f));
+            }
+            g2.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 14, 14);
+
+            if (getPassword().length == 0 && !focused && placeholder != null) {
+                g2.setColor(TEXT_MUTED);
+                g2.setFont(BODY);
+                FontMetrics fm = g2.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, 16, y);
+            }
             g2.dispose();
             super.paintComponent(g);
         }

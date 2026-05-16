@@ -17,18 +17,19 @@ public class MainFrame extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel contentArea;
     private final JLabel titleBar;
+    private final NutrixSidebar sidebar;
 
     // Índice original corresponde ao índice em ENTRIES do NutrixSidebar
     private static final String[] PANEL_KEYS = {
         "dashboard", "cadastro", "antropometria", "necessidades",
         "prescricao", "hidratacao", "calculos", "ingestao",
-        "infundido", "formulas", "config"   // index 10 = Configurações (admin only)
+        "infundido", "formulas", "evolucao", "relatorios", "config"
     };
 
     private static final String[] PANEL_TITLES = {
         "Dashboard", "Admissão de Pacientes", "Avaliação Antropométrica", "Metas Nutricionais",
         "Prescrição Enteral", "Hidratação", "Monitoramento UTI", "Ingestão Oral",
-        "Controle de Qualidade P×I", "Catálogo de Fórmulas", "Configurações do Sistema"
+        "Controle de Qualidade P×I", "Catálogo de Fórmulas", "Evolução Clínica", "Relatórios Gerenciais", "Configurações do Sistema"
     };
 
     public MainFrame() {
@@ -57,13 +58,8 @@ public class MainFrame extends JFrame {
         setContentPane(root);
 
         // ── Sidebar ──
-        NutrixSidebar sidebar = new NutrixSidebar(
-            originalIndex -> {
-                if (originalIndex < PANEL_KEYS.length) {
-                    cardLayout.show(contentArea, PANEL_KEYS[originalIndex]);
-                    titleBar.setText(PANEL_TITLES[originalIndex]);
-                }
-            },
+        sidebar = new NutrixSidebar(
+            this::navigate,
             () -> {
                 // Logout
                 dispose();
@@ -71,6 +67,7 @@ public class MainFrame extends JFrame {
             }
         );
         root.add(sidebar, BorderLayout.WEST);
+        sidebar.installHoverTrigger(root);
 
         // ── Right canvas ──
         JPanel rightWrapper = new JPanel(new BorderLayout());
@@ -119,7 +116,7 @@ public class MainFrame extends JFrame {
         root.add(rightWrapper, BorderLayout.CENTER);
 
         // ── Register Panels ──
-        contentArea.add(new DashboardPanel(),          PANEL_KEYS[0]);
+        contentArea.add(new DashboardPanel(this::navigate), PANEL_KEYS[0]);
         contentArea.add(new PacienteCadastroPanel(),   PANEL_KEYS[1]);
         contentArea.add(new AntropometriaPanel(),      PANEL_KEYS[2]);
         contentArea.add(new NecessidadesPanel(),       PANEL_KEYS[3]);
@@ -129,7 +126,17 @@ public class MainFrame extends JFrame {
         contentArea.add(new IngestaoOralPanel(),       PANEL_KEYS[7]);
         contentArea.add(new PrescritoInfundidoPanel(), PANEL_KEYS[8]);
         contentArea.add(new ConsultaFormulasPanel(),   PANEL_KEYS[9]);
-        contentArea.add(new ConfiguracoesPanel(),      PANEL_KEYS[10]);
+        contentArea.add(new JPanel(),                  PANEL_KEYS[10]); // Evolução
+        contentArea.add(new JPanel(),                  PANEL_KEYS[11]); // Relatórios
+        contentArea.add(new ConfiguracoesPanel(),      PANEL_KEYS[12]);
+    }
+
+    public void navigate(int originalIndex) {
+        if (originalIndex < PANEL_KEYS.length) {
+            cardLayout.show(contentArea, PANEL_KEYS[originalIndex]);
+            titleBar.setText(PANEL_TITLES[originalIndex]);
+            sidebar.setSelectedItem(originalIndex);
+        }
     }
 
     public static void main(String[] args) {

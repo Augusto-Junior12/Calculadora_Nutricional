@@ -42,17 +42,28 @@ public class AntropometriaPanel extends ClinicalFormPanel {
             var alertas = new ArrayList<model.AlertaClinico>();
             double altEst = service.calcularAlturaEstimada(g, aj, idade, alertas);
             double pesoEst = service.calcularPesoEstimado(g, e, idade, aj, cb, alertas);
-            double imc = service.calcularIMC(pesoEst, altEst);
-            String classIMC = service.classificarIMC(imc, idade).getDescricao();
+            
+            // Se altura manual foi informada, use-a para o IMC
+            double altFinal = altEst;
+            String altLabel = Formatador.metros(altEst) + " (est.)";
+            
+            String manualAltTxt = fAltura.getText().trim();
+            if (!manualAltTxt.isEmpty()) {
+                altFinal = Double.parseDouble(manualAltTxt.replace(",", "."));
+                altLabel = Formatador.metros(altFinal) + " (real)";
+            }
 
+            double imc = service.calcularIMC(pesoEst, altFinal);
+            String classIMC = service.classificarIMC(imc, idade).getDescricao();
+ 
             showResults(new String[][]{
-                {"Altura Estimada (Chumlea)", Formatador.metros(altEst)},
+                {"Altura Utilizada", altLabel},
                 {"Peso Estimado (Chumlea)", Formatador.kg(pesoEst)},
-                {"IMC Estimado", Formatador.decimal1(imc)},
+                {"IMC Calculado", Formatador.decimal1(imc)},
                 {"Classificação IMC", classIMC},
             }, NutrixUI.SUCCESS);
         } catch (Exception ex) {
-            showError("Preencha todos os campos corretamente.");
+            showError("Preencha Idade, AJ e CB corretamente.");
         }
     }
 }
